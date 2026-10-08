@@ -1,0 +1,81 @@
+{
+  "name": "pdf-tool",
+  "productName": "PDF Tool",
+  "version": "1.1.0",
+  "description": "Desktop PDF viewer with annotation, signing, page editing and conversion tools.",
+  "main": "electron/main.js",
+  "author": "AI Evolution Polska",
+  "license": "MIT",
+  "homepage": "https://github.com/aievolutionpl/PDFTool",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aievolutionpl/PDFTool.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aievolutionpl/PDFTool/issues"
+  },
+  "private": true,
+  "scripts": {
+    "build:renderer": "node scripts/build.mjs",
+    "dev:web": "node scripts/build.mjs --serve",
+    "start": "node scripts/build.mjs && electron .",
+    "icon": "node scripts/make-icon.mjs",
+    "dist": "node scripts/build.mjs && electron-builder --win nsis",
+    "dist:portable": "node scripts/build.mjs && electron-builder --win portable"
+  },
+  "build": {
+    "appId": "com.pdftool.app",
+    "productName": "PDF Tool",
+    "copyright": "Copyright © 2026 AI Evolution Polska",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "dist/**/*",
+      "!dist/**/*.map",
+      "!dist/sample.pdf",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PDF Tool",
+      "uninstallDisplayName": "PDF Tool",
+      "artifactName": "PDF-Tool-Setup-${version}.exe"
+    },
+    "portable": {
+      "artifactName": "PDF-Tool-Portable-${version}.exe"
+    },
+    "fileAssociations": [
+      {
+        "ext": "pdf",
+        "name": "PDF Document",
+        "description": "PDF Document",
+        "role": "Viewer",
+        "icon": "build/icon.ico"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@fontsource/ibm-plex-mono": "5.3.0",
+    "@fontsource/ibm-plex-sans": "5.3.0",
+    "docx": "9.7.2",
+    "electron": "44.4.5",
+    "electron-builder": "26.15.3",
+    "esbuild": "0.28.2",
+    "jszip": "3.10.2",
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "6.3.289"
+  }
+}

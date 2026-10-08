@@ -1,0 +1,8 @@
+node_modules/
+dist/
+release/
+release-test/
+.claude/
+*.log
+Thumbs.db
+desktop.ini

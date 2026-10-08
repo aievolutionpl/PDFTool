@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data: blob:; connect-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>PDF Tool</title>
+  <link rel="preload" href="fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/ibm-plex-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="pdf_viewer.css">
+  <link rel="stylesheet" href="styles.css">
+  <script src="theme-init.js"></script>
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <!-- Brand mark: a page with a folded corner, the fold marked in "red pencil". -->
+  <symbol id="i-mark" viewBox="0 0 32 32" stroke="none">
+    <rect width="32" height="32" rx="7" style="fill: var(--mark-bg)"/>
+    <path d="M10 7h8.6L24 12.4V24a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z" style="fill: var(--mark-page)"/>
+    <path d="M18.6 7v4.4a1 1 0 0 0 1 1H24Z" style="fill: var(--mark-fold)"/>
+    <rect x="12" y="15.6" width="8" height="1.7" rx=".4" style="fill: var(--mark-line)"/>
+    <rect x="12" y="19.2" width="5.4" height="1.7" rx=".4" style="fill: var(--mark-line-2)"/>
+  </symbol>
+  <symbol id="i-open" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></symbol>
+  <symbol id="i-save" viewBox="0 0 24 24"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></symbol>
+  <symbol id="i-save-as" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></symbol>
+  <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-sidebar" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></symbol>
+  <symbol id="i-rotate-cw" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></symbol>
+  <symbol id="i-rotate-ccw" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></symbol>
+  <symbol id="i-pointer" viewBox="0 0 24 24"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></symbol>
+  <symbol id="i-hand" viewBox="0 0 24 24"><path d="M18 11V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v2"/><path d="M10 10.5V6a2 2 0 0 0-2-2a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></symbol>
+  <symbol id="i-text" viewBox="0 0 24 24"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/></symbol>
+  <symbol id="i-highlight" viewBox="0 0 24 24"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></symbol>
+  <symbol id="i-image" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></symbol>
+  <symbol id="i-images" viewBox="0 0 24 24"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></symbol>
+  <symbol id="i-signature" viewBox="0 0 24 24"><path d="m21 17-2.156-1.868A.5.5 0 0 0 18 15.5v.5a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1c0-2.545-3.991-3.97-8.5-4a1 1 0 0 0 0 5c4.153 0 4.745-11.295 5.708-13.5a2.5 2.5 0 1 1 3.31 3.284"/><path d="M3 21h18"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11"/></symbol>
+  <symbol id="i-redo" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5A5.5 5.5 0 0 0 9.5 20H13"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></symbol>
+  <symbol id="i-file-plus" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M9 15h6"/><path d="M12 18v-6"/></symbol>
+  <symbol id="i-files" viewBox="0 0 24 24"><path d="M20 7h-3a2 2 0 0 1-2-2V2"/><path d="M9 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l4 4v10a2 2 0 0 1-2 2Z"/><path d="M3 7.6v12.8A1.6 1.6 0 0 0 4.6 22h9.8"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+  <symbol id="i-word" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m8 12 1.5 6 2.5-4 2.5 4 1.5-6"/></symbol>
+  <symbol id="i-sheet" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></symbol>
+  <symbol id="i-scissors" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><path d="M8.12 8.12 12 12"/><path d="M20 4 8.12 15.88"/><circle cx="6" cy="18" r="3"/><path d="M14.8 14.8 20 20"/></symbol>
+  <symbol id="i-merge" viewBox="0 0 24 24"><path d="m8 6 4-4 4 4"/><path d="M12 2v10.3a4 4 0 0 1-1.172 2.872L4 22"/><path d="m20 22-5-5"/></symbol>
+  <symbol id="i-extract" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+  <symbol id="i-stamp" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77Z"/><path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-3-3c-1.69 0-3 1-3 3s1 2 1 3.5V13"/></symbol>
+  <symbol id="i-hash" viewBox="0 0 24 24"><path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3 8 21"/><path d="M16 3l-2 18"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-present" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M3 12h.01"/><path d="M3 18h.01"/><path d="M3 6h.01"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M8 6h13"/></symbol>
+  <symbol id="i-window" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></symbol>
+  <symbol id="i-swap" viewBox="0 0 24 24"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-fit-width" viewBox="0 0 24 24"><path d="M3 12h18"/><path d="m7 8-4 4 4 4"/><path d="m17 8 4 4-4 4"/></symbol>
+  <symbol id="i-fit-page" viewBox="0 0 24 24"><rect width="14" height="18" x="5" y="3" rx="2"/><path d="M9 8h6"/><path d="M9 12h6"/><path d="M9 16h3"/></symbol>
+  <symbol id="i-keyboard" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01"/><path d="M10 8h.01"/><path d="M14 8h.01"/><path d="M18 8h.01"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/><path d="M7 16h10"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
+</svg>
+
+<div class="app" id="app">
+  <!-- Title bar (draggable; Windows' own min/max/close buttons sit on the right) -->
+  <header class="titlebar">
+    <div class="brand">
+      <svg class="mark"><use href="#i-mark"/></svg>
+      <span class="wordmark">PDF Tool</span>
+    </div>
+    <div class="titlebar-actions">
+      <button class="menu-btn" id="menuBtn" aria-haspopup="menu">File<svg class="icon"><use href="#i-chevron-down"/></svg></button>
+      <span class="tb-sep"></span>
+      <button class="icon-btn" data-cmd="open" title="Open… (Ctrl+O)"><svg class="icon"><use href="#i-open"/></svg></button>
+      <button class="icon-btn" data-cmd="save" data-needs-doc title="Save (Ctrl+S)"><svg class="icon"><use href="#i-save"/></svg></button>
+      <button class="icon-btn" data-cmd="print" data-needs-doc title="Print… (Ctrl+P)"><svg class="icon"><use href="#i-print"/></svg></button>
+    </div>
+    <div class="doc-title" id="docTitle"><span class="dirty-dot" title="Unsaved changes"></span><span class="doc-name">No document</span></div>
+    <div class="titlebar-right">
+      <button class="icon-btn" data-cmd="find" data-needs-doc title="Find in document (Ctrl+F)"><svg class="icon"><use href="#i-search"/></svg></button>
+      <button class="icon-btn" id="themeBtn" title="Appearance"><svg class="icon"><use href="#i-moon"/></svg></button>
+    </div>
+  </header>
+
+  <!-- Toolbar: section tabs + the tools of the active section -->
+  <div class="toolbar">
+    <nav class="tabs" role="tablist" aria-label="Tool sections">
+      <button class="tab active" role="tab" data-tab="view">View</button>
+      <button class="tab" role="tab" data-tab="annotate">Annotate</button>
+      <button class="tab" role="tab" data-tab="pages">Pages</button>
+      <button class="tab" role="tab" data-tab="convert">Convert</button>
+    </nav>
+    <div class="toolbar-scroll">
+      <!-- View -->
+      <div class="tool-panel" data-panel="view">
+        <button class="tool" data-cmd="sidebar" title="Show or hide the page sidebar"><svg class="icon"><use href="#i-sidebar"/></svg><span>Sidebar</span></button>
+        <div class="sep"></div>
+        <button class="tool" data-cursor="select" title="Select text"><svg class="icon"><use href="#i-pointer"/></svg><span>Select</span></button>
+        <button class="tool" data-cursor="hand" title="Hand — drag to scroll"><svg class="icon"><use href="#i-hand"/></svg><span>Hand</span></button>
+        <div class="sep"></div>
+        <button class="tool" data-cmd="rotate-view-ccw" data-needs-doc title="Rotate view counter-clockwise (doesn't change the file)"><svg class="icon"><use href="#i-rotate-ccw"/></svg></button>
+        <button class="tool" data-cmd="rotate-view-cw" data-needs-doc title="Rotate view clockwise (doesn't change the file)"><svg class="icon"><use href="#i-rotate-cw"/></svg></button>
+        <div class="sep"></div>
+        <label class="tool-select" title="Page layout">
+          <span>Layout</span>
+          <select id="layoutSelect" data-needs-doc>
+            <option value="vertical">Continuous</option>
+            <option value="page">Single page</option>
+            <option value="wrapped">Grid</option>
+            <option value="horizontal">Horizontal</option>
+            <option value="spread-odd">Two pages</option>
+            <option value="spread-even">Two pages, cover first</option>
+          </select>
+        </label>
+        <div class="segmented" id="readingMode" role="group" aria-label="Page colours">
+          <button class="seg active" data-reading="normal" title="Original colours">Original</button>
+          <button class="seg" data-reading="sepia" title="Warm paper tone — easier on the eyes">Sepia</button>
+          <button class="seg" data-reading="night" title="Dark pages for reading at night">Night</button>
+        </div>
+        <div class="sep"></div>
+        <button class="tool" data-cmd="present" data-needs-doc title="Presentation (F5)"><svg class="icon"><use href="#i-present"/></svg><span>Present</span></button>
+        <button class="tool" data-cmd="properties" data-needs-doc title="Document properties"><svg class="icon"><use href="#i-info"/></svg><span>Properties</span></button>
+      </div>
+
+      <!-- Annotate -->
+      <div class="tool-panel" data-panel="annotate" hidden>
+        <button class="tool" data-mode="none" data-needs-doc title="Select annotations (Esc)"><svg class="icon"><use href="#i-pointer"/></svg><span>Select</span></button>
+        <button class="tool" data-mode="freetext" data-needs-doc title="Add text — click on the page"><svg class="icon"><use href="#i-text"/></svg><span>Text</span></button>
+        <button class="tool" data-mode="ink" data-needs-doc title="Draw freehand"><svg class="icon"><use href="#i-pen"/></svg><span>Draw</span></button>
+        <button class="tool" data-mode="highlight" data-needs-doc title="Highlight — select text, or paint over images"><svg class="icon"><use href="#i-highlight"/></svg><span>Highlight</span></button>
+        <button class="tool" data-mode="stamp" data-needs-doc title="Insert an image"><svg class="icon"><use href="#i-image"/></svg><span>Image</span></button>
+        <button class="tool" data-cmd="signature" data-needs-doc title="Draw, type or upload your signature"><svg class="icon"><use href="#i-signature"/></svg><span>Sign</span></button>
+        <div class="sep"></div>
+        <div class="tool-params" id="toolParams">
+          <div class="param" data-for="freetext">
+            <label class="color-well" title="Text colour"><input type="color" id="textColor" value="#1c1b1a"></label>
+            <label class="param-range" title="Font size"><span>Size</span><input type="range" id="textSize" min="6" max="72" value="14"><output>14</output></label>
+          </div>
+          <div class="param" data-for="ink">
+            <label class="color-well" title="Pen colour"><input type="color" id="inkColor" value="#1f4fb4"></label>
+            <label class="param-range" title="Line width"><span>Width</span><input type="range" id="inkThickness" min="1" max="20" value="3"><output>3</output></label>
+            <label class="param-range" title="Opacity"><span>Opacity</span><input type="range" id="inkOpacity" min="10" max="100" value="100"><output>100%</output></label>
+          </div>
+          <div class="param" data-for="highlight">
+            <div class="swatches" id="highlightColors" role="group" aria-label="Highlight colour">
+              <button class="swatch-btn active" data-color="#FFFF98" style="--c:#FFFF98" title="Yellow"></button>
+              <button class="swatch-btn" data-color="#53FFBC" style="--c:#53FFBC" title="Green"></button>
+              <button class="swatch-btn" data-color="#80EBFF" style="--c:#80EBFF" title="Blue"></button>
+              <button class="swatch-btn" data-color="#FFCBE6" style="--c:#FFCBE6" title="Pink"></button>
+              <button class="swatch-btn" data-color="#FF4F5F" style="--c:#FF4F5F" title="Red"></button>
+            </div>
+            <label class="param-range" title="Brush width for free highlighting"><span>Width</span><input type="range" id="hlThickness" min="8" max="24" value="12"><output>12</output></label>
+          </div>
+          <div class="param hint" data-for="none">Click an annotation to move, resize or delete it.</div>
+          <div class="param hint" data-for="stamp">Click on a page to place another image.</div>
+        </div>
+        <div class="sep"></div>
+        <button class="tool" data-cmd="undo" data-needs-doc title="Undo (Ctrl+Z)"><svg class="icon"><use href="#i-undo"/></svg></button>
+        <button class="tool" data-cmd="redo" data-needs-doc title="Redo (Ctrl+Y)"><svg class="icon"><use href="#i-redo"/></svg></button>
+        <button class="tool" data-cmd="delete-annot" data-needs-doc title="Delete selected annotation (Del)"><svg class="icon"><use href="#i-trash"/></svg></button>
+      </div>
+
+      <!-- Pages -->
+      <div class="tool-panel" data-panel="pages" hidden>
+        <button class="tool primary" data-cmd="organize" data-needs-doc title="Reorder, rotate, delete and insert pages (Ctrl+Shift+O)"><svg class="icon"><use href="#i-grid"/></svg><span>Organize pages</span></button>
+        <div class="sep"></div>
+        <button class="tool" data-cmd="rotate-page-ccw" data-needs-doc title="Rotate this page counter-clockwise"><svg class="icon"><use href="#i-rotate-ccw"/></svg></button>
+        <button class="tool" data-cmd="rotate-page-cw" data-needs-doc title="Rotate this page clockwise"><svg class="icon"><use href="#i-rotate-cw"/></svg></button>
+        <button class="tool" data-cmd="rotate-all" data-needs-doc title="Rotate every page clockwise"><svg class="icon"><use href="#i-files"/></svg><span>Rotate all</span></button>
+        <button class="tool" data-cmd="delete-page" data-needs-doc title="Delete this page"><svg class="icon"><use href="#i-trash"/></svg><span>Delete</span></button>
+        <button class="tool" data-cmd="insert-blank" data-needs-doc title="Insert a blank page after this one"><svg class="icon"><use href="#i-file-plus"/></svg><span>Blank page</span></button>
+        <button class="tool" data-cmd="insert-pdf" data-needs-doc title="Insert another PDF after this page"><svg class="icon"><use href="#i-files"/></svg><span>Insert PDF</span></button>
+        <div class="sep"></div>
+        <button class="tool" data-cmd="extract" data-needs-doc title="Save chosen pages as a new PDF"><svg class="icon"><use href="#i-extract"/></svg><span>Extract</span></button>
+        <button class="tool" data-cmd="split" data-needs-doc title="Split into several PDFs"><svg class="icon"><use href="#i-scissors"/></svg><span>Split</span></button>
+        <div class="sep"></div>
+        <button class="tool" data-cmd="watermark" data-needs-doc title="Stamp text across pages"><svg class="icon"><use href="#i-stamp"/></svg><span>Watermark</span></button>
+        <button class="tool" data-cmd="page-numbers" data-needs-doc title="Add page numbers"><svg class="icon"><use href="#i-hash"/></svg><span>Page numbers</span></button>
+      </div>
+
+      <!-- Convert -->
+      <div class="tool-panel" data-panel="convert" hidden>
+        <span class="group-label">From this PDF</span>
+        <button class="tool" data-cmd="to-word" data-needs-doc title="Convert to a Word document (.docx) — exact layout and editable"><svg class="icon"><use href="#i-word"/></svg><span>Word</span></button>
+        <button class="tool" data-cmd="to-excel" data-needs-doc title="Convert tables to an Excel workbook (.xlsx)"><svg class="icon"><use href="#i-sheet"/></svg><span>Excel</span></button>
+        <button class="tool" data-cmd="to-images" data-needs-doc title="Export pages as PNG or JPG"><svg class="icon"><use href="#i-image"/></svg><span>Images</span></button>
+        <button class="tool" data-cmd="to-text" data-needs-doc title="Extract all text (.txt)"><svg class="icon"><use href="#i-file-text"/></svg><span>Text</span></button>
+        <button class="tool" data-cmd="split" data-needs-doc title="Split into several PDFs"><svg class="icon"><use href="#i-scissors"/></svg><span>Split</span></button>
+        <div class="sep"></div>
+        <span class="group-label">Create a PDF</span>
+        <button class="tool" data-cmd="images-to-pdf" title="Combine photos or scans into one PDF"><svg class="icon"><use href="#i-images"/></svg><span>From images</span></button>
+        <button class="tool" data-cmd="merge" title="Combine several PDFs into one"><svg class="icon"><use href="#i-merge"/></svg><span>Merge PDFs</span></button>
+      </div>
+    </div>
+  </div>
+
+  <main class="workspace">
+    <aside class="side-panel" id="sidebar">
+      <div class="sidebar-tabs" role="tablist">
+        <button class="side-tab active" data-side="thumbs">Pages</button>
+        <button class="side-tab" data-side="outline">Bookmarks</button>
+      </div>
+      <div class="sidebar-body">
+        <div class="thumbs" id="thumbs"></div>
+        <div class="outline" id="outline" hidden></div>
+      </div>
+    </aside>
+    <div class="sidebar-resizer" id="sidebarResizer" title="Drag to resize"></div>
+
+    <section class="stage" id="stage">
+      <div id="viewerContainer" class="viewer-container" tabindex="0">
+        <div id="viewer" class="pdfViewer"></div>
+      </div>
+
+      <!-- Find bar -->
+      <div class="findbar" id="findbar" hidden>
+        <svg class="icon"><use href="#i-search"/></svg>
+        <input id="findInput" type="search" placeholder="Find in document" autocomplete="off" spellcheck="false">
+        <span class="find-count" id="findCount"></span>
+        <div class="find-opts">
+          <label title="Match case"><input type="checkbox" id="findCase"><span>Aa</span></label>
+          <label title="Whole words only"><input type="checkbox" id="findWord"><span>ab|</span></label>
+        </div>
+        <span class="tb-sep"></span>
+        <button class="icon-btn small" data-find="prev" title="Previous match (Shift+Enter)"><svg class="icon"><use href="#i-chevron-up"/></svg></button>
+        <button class="icon-btn small" data-find="next" title="Next match (Enter)"><svg class="icon"><use href="#i-chevron-down"/></svg></button>
+        <button class="icon-btn small" data-find="close" title="Close (Esc)"><svg class="icon"><use href="#i-x"/></svg></button>
+      </div>
+
+      <!-- Start screen -->
+      <div class="welcome" id="welcome">
+        <div class="welcome-inner">
+          <header class="welcome-head">
+            <svg class="mark mark-lg"><use href="#i-mark"/></svg>
+            <div>
+              <h1>PDF Tool</h1>
+              <p>Read, annotate, sign, rearrange and convert PDF documents.</p>
+            </div>
+          </header>
+          <div class="welcome-grid">
+            <section class="start">
+              <h2 class="section-title">Start</h2>
+              <button class="row-action primary" data-cmd="open">
+                <svg class="icon"><use href="#i-open"/></svg><span>Open a PDF…</span><kbd>Ctrl O</kbd>
+              </button>
+              <button class="row-action" data-cmd="images-to-pdf">
+                <svg class="icon"><use href="#i-images"/></svg><span>Create a PDF from images</span>
+              </button>
+              <button class="row-action" data-cmd="merge">
+                <svg class="icon"><use href="#i-merge"/></svg><span>Merge several PDFs</span>
+              </button>
+              <button class="row-action" data-cmd="new-window">
+                <svg class="icon"><use href="#i-window"/></svg><span>New window</span><kbd>Ctrl N</kbd>
+              </button>
+              <p class="drop-hint"><svg class="icon"><use href="#i-upload"/></svg>You can also drop a PDF anywhere in this window.</p>
+            </section>
+            <section class="recent" id="recent">
+              <div class="section-head">
+                <h2 class="section-title">Recent</h2>
+                <button class="link-btn" id="clearRecent" hidden>Clear list</button>
+              </div>
+              <ul id="recentList"></ul>
+              <p class="recent-empty" id="recentEmpty">Documents you open will be listed here.</p>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <div class="drop-overlay" id="dropOverlay"><div><svg class="icon"><use href="#i-upload"/></svg>Drop to open</div></div>
+    </section>
+
+    <!-- Page organizer -->
+    <section class="organizer" id="organizer" hidden>
+      <div class="organizer-bar">
+        <div class="org-title">
+          <strong>Organize pages</strong>
+          <span data-org-count></span>
+        </div>
+        <div class="org-tools">
+          <button class="tool" data-org="select-all" title="Select all (Ctrl+A)"><svg class="icon"><use href="#i-check"/></svg><span>Select all</span></button>
+          <button class="tool" data-org="rotate-left" title="Rotate selected counter-clockwise"><svg class="icon"><use href="#i-rotate-ccw"/></svg></button>
+          <button class="tool" data-org="rotate-right" title="Rotate selected clockwise"><svg class="icon"><use href="#i-rotate-cw"/></svg></button>
+          <button class="tool" data-org="delete" title="Delete selected (Del)"><svg class="icon"><use href="#i-trash"/></svg></button>
+          <button class="tool" data-org="reverse" title="Reverse page order"><svg class="icon"><use href="#i-swap"/></svg></button>
+          <div class="sep"></div>
+          <button class="tool" data-org="blank" title="Insert a blank page after the selection"><svg class="icon"><use href="#i-file-plus"/></svg><span>Blank page</span></button>
+          <button class="tool" data-org="insert-pdf" title="Insert pages from another PDF"><svg class="icon"><use href="#i-files"/></svg><span>Insert PDF</span></button>
+          <button class="tool" data-org="extract" title="Save the selected pages as a new PDF"><svg class="icon"><use href="#i-extract"/></svg><span>Extract</span></button>
+          <div class="sep"></div>
+          <label class="param-range" title="Thumbnail size"><span>Size</span><input type="range" min="100" max="260" value="150" data-org-size></label>
+        </div>
+        <div class="org-actions">
+          <button class="btn" data-org="cancel">Cancel</button>
+          <button class="btn btn-primary" data-org="apply">Apply changes</button>
+        </div>
+      </div>
+      <p class="org-tip">Drag to reorder · Click to select, Ctrl or Shift + click for several · Double-click to rotate</p>
+      <div class="organizer-grid" tabindex="0"></div>
+    </section>
+  </main>
+
+  <!-- Status bar -->
+  <footer class="statusbar" id="statusbar">
+    <div class="sb-group">
+      <button class="icon-btn small" data-cmd="prev" data-needs-doc title="Previous page"><svg class="icon"><use href="#i-chevron-left"/></svg></button>
+      <div class="page-box"><input id="pageInput" type="text" inputmode="numeric" value="–" aria-label="Page number" data-needs-doc><span id="pageCount">/ –</span></div>
+      <button class="icon-btn small" data-cmd="next" data-needs-doc title="Next page"><svg class="icon"><use href="#i-chevron-right"/></svg></button>
+    </div>
+    <div class="sb-info" id="docInfo"></div>
+    <div class="sb-group">
+      <button class="icon-btn small" data-cmd="fit-width" data-needs-doc title="Fit width"><svg class="icon"><use href="#i-fit-width"/></svg></button>
+      <button class="icon-btn small" data-cmd="fit-page" data-needs-doc title="Fit page"><svg class="icon"><use href="#i-fit-page"/></svg></button>
+      <span class="tb-sep"></span>
+      <button class="icon-btn small" data-cmd="zoom-out" data-needs-doc title="Zoom out (Ctrl −)"><svg class="icon"><use href="#i-minus"/></svg></button>
+      <button class="zoom-label" id="zoomBtn" data-needs-doc title="Zoom presets">100%</button>
+      <button class="icon-btn small" data-cmd="zoom-in" data-needs-doc title="Zoom in (Ctrl +)"><svg class="icon"><use href="#i-plus"/></svg></button>
+    </div>
+  </footer>
+</div>
+
+<div id="printContainer"></div>
+</body>
+</html>
