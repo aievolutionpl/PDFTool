@@ -2,7 +2,7 @@
   "name": "pdf-tool",
   "productName": "PDF Tool",
   "version": "1.2.0",
-  "description": "Desktop PDF viewer with annotation, signing, page editing and conversion tools.",
+  "description": "Free, open-source PDF tool for Windows by AI Evolution Polska: read, annotate, sign, edit pages and convert PDF to Word and Excel.",
   "main": "electron/main.js",
   "author": "AI Evolution Polska",
   "license": "MIT",
@@ -52,10 +52,10 @@
       "createStartMenuShortcut": true,
       "shortcutName": "PDF Tool",
       "uninstallDisplayName": "PDF Tool",
-      "artifactName": "PDF-Tool-Setup-${version}.exe"
+      "artifactName": "PDF-Tool-Setup.exe"
     },
     "portable": {
-      "artifactName": "PDF-Tool-Portable-${version}.exe"
+      "artifactName": "PDF-Tool-Portable.exe"
     },
     "fileAssociations": [
       {

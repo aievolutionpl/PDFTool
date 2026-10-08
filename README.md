@@ -5,31 +5,84 @@
 <h1 align="center">PDF Tool</h1>
 
 <p align="center">
-  A free Windows app to read, annotate, sign, rearrange and convert PDF files.<br>
-  Its PDF → Word conversion keeps the exact layout <em>and</em> stays editable.
+  <b>Free, open-source PDF app for Windows</b><br>
+  Read, annotate, sign, rearrange and convert PDF files —<br>
+  including PDF → Word that keeps the exact layout <em>and</em> stays editable.
 </p>
 
 <p align="center">
-  <a href="../../releases/latest"><b>Download for Windows</b></a> ·
-  <a href="#features">Features</a> ·
-  <a href="#install">Install</a> ·
-  <a href="#how-to">How to</a> ·
-  <a href="#build-from-source">Build from source</a>
+  Made by <a href="https://www.aievolutionpolska.pl"><b>AI Evolution Polska</b></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/aievolutionpl/PDFTool/releases/latest/download/PDF-Tool-Setup.exe"><img alt="Download the installer for Windows" src="https://img.shields.io/badge/Download-Installer%20for%20Windows-c63f17?style=for-the-badge"></a>
+  &nbsp;
+  <a href="https://github.com/aievolutionpl/PDFTool/releases/latest/download/PDF-Tool-Portable.exe"><img alt="Download the portable version" src="https://img.shields.io/badge/Portable-no%20install%20needed-1c1b1a?style=for-the-badge"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/aievolutionpl/PDFTool/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/aievolutionpl/PDFTool?style=flat-square&label=latest%20version&color=1c1b1a"></a>
+  <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-1c1b1a?style=flat-square">
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-1c1b1a?style=flat-square"></a>
+  <a href="https://github.com/aievolutionpl/PDFTool/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/aievolutionpl/PDFTool/total?style=flat-square&color=1c1b1a"></a>
+</p>
+
+<p align="center">
+  <b>English</b> · <a href="README.pl.md">Polski</a>
 </p>
 
 ![PDF Tool showing an invoice with the page sidebar](docs/screenshots/viewer.png)
 
-Everything runs on your computer. No account, no upload, no internet connection needed —
-your documents never leave your PC.
+PDF Tool is a desktop app for everyday work with PDFs: open and read them, write and draw on them,
+sign them, put pages in order, and turn them into Word, Excel or images. It's free, it has no ads and
+no account, and everything happens on your own computer — your documents are never uploaded anywhere.
 
-## Features
+## Install in 3 steps
+
+1. **Download** — click **[Download the installer](https://github.com/aievolutionpl/PDFTool/releases/latest/download/PDF-Tool-Setup.exe)**
+   (`PDF-Tool-Setup.exe`, about 108 MB).
+2. **Open the downloaded file.** Windows may show a blue window saying *“Windows protected your PC”*.
+   Click **More info**, then **Run anyway**.
+   <br><sub>This appears because the app isn't signed with a paid certificate — normal for free, open-source software. The full source code is in this repository.</sub>
+3. **Follow the installer:** keep **Only for me** selected → **Next** → keep the suggested folder →
+   **Install** → **Finish**. PDF Tool starts, and you'll find it in the Start menu and on your desktop.
+
+With *Only for me* no administrator rights are needed.
+
+<details>
+<summary><b>Open every PDF with PDF Tool</b></summary>
+
+Right-click any PDF file → **Open with** → **Choose another app** → select **PDF Tool** → click **Always**.
+From now on, double-clicking a PDF opens it in PDF Tool.
+</details>
+
+<details>
+<summary><b>No installation — portable version</b></summary>
+
+Download **[PDF-Tool-Portable.exe](https://github.com/aievolutionpl/PDFTool/releases/latest/download/PDF-Tool-Portable.exe)**
+and double-click it. Nothing is installed, so it also runs from a USB stick or on a computer where you
+can't install programs.
+</details>
+
+<details>
+<summary><b>Update or uninstall</b></summary>
+
+- **Update:** download the newest installer from the link above and run it — it replaces the old
+  version and keeps your settings and recent files. All versions are listed on the
+  [Releases](https://github.com/aievolutionpl/PDFTool/releases) page.
+- **Uninstall:** Windows **Settings → Apps → Installed apps → PDF Tool → Uninstall**.
+</details>
+
+Requires Windows 10 or 11, 64-bit.
+
+## What you can do
 
 | | |
 | --- | --- |
-| **Read** | Fast, sharp rendering (Mozilla's PDF.js, the engine in Firefox) · page thumbnails and bookmarks · search with highlighting · zoom, fit width / page · continuous, single-page, grid and two-page layouts · Sepia and Night page colours · presentation mode · light and dark theme |
-| **Annotate & sign** | Text boxes · freehand drawing · highlighter · images · signatures (draw, type, or upload a photo — the white background is removed automatically) · undo/redo · saved into the PDF as standard annotations other readers can see |
+| **Read** | Fast, sharp pages (Mozilla's PDF.js, the engine in Firefox) · page thumbnails and bookmarks · search with highlighting · zoom, fit width / page · continuous, single-page, grid and two-page layouts · Sepia and Night page colours · presentation mode · light and dark theme |
+| **Annotate & sign** | Text boxes · freehand drawing · highlighter · images · signatures (draw, type, or upload a photo — the white background is removed automatically) · undo/redo · saved into the PDF, so other PDF readers show them too |
 | **Pages** | Drag-and-drop page organizer · rotate · delete · insert blank pages or another PDF · extract pages · split into several files · watermark (any language) · page numbers · edit title/author |
-| **Convert** | PDF → Word (3 layouts, see below) · PDF → Excel · PDF → PNG/JPG · PDF → text · images → PDF · merge PDFs |
+| **Convert** | PDF → Word (3 layouts) · PDF → Excel · PDF → PNG/JPG · PDF → text · images → PDF · merge PDFs |
 
 ### PDF → Word that looks like the original
 
@@ -67,25 +120,12 @@ across pages.
 
 ![PDF Tool in dark mode](docs/screenshots/dark.png)
 
-## Install
-
-1. Download **`PDF-Tool-Setup-<version>.exe`** from the [latest release](../../releases/latest).
-   Prefer not to install? Download **`PDF-Tool-Portable-<version>.exe`** and run it directly.
-2. Run it. You can choose the install folder; it adds Start menu and desktop shortcuts.
-3. Windows may show *“Windows protected your PC”*, because the app isn't code-signed.
-   Click **More info → Run anyway**.
-
-**Open PDFs with PDF Tool by double-click:** right-click any PDF → **Open with → Choose another app →
-PDF Tool**, tick **Always**.
-
-Requires Windows 10 or 11 (64-bit).
-
 ## How to
 
 | I want to… | Do this |
 | --- | --- |
 | Open a PDF | **Ctrl+O**, drop the file on the window, or use *Recent* on the start screen |
-| Fill in, write on or highlight a PDF | **Annotate** tab → *Text*, *Draw* or *Highlight*. Click an annotation later to move, restyle or delete it |
+| Write on, draw on or highlight a PDF | **Annotate** tab → *Text*, *Draw* or *Highlight*. Click an annotation later to move, restyle or delete it |
 | Sign a document | **Annotate → Sign**, then drag the signature into place. Tick *Remember* to reuse it next time |
 | Reorder, rotate or delete pages | **Pages → Organize pages**, drag pages around, then *Apply changes* |
 | Take some pages out | **Pages → Extract** (e.g. `1-3, 7`) or *Split* into several files |
@@ -111,7 +151,7 @@ Requires Windows 10 or 11 (64-bit).
 ## Good to know
 
 - **Scanned PDFs** (photos of paper) have no text inside, so they convert to Word and Excel as
-  pictures. Text recognition (OCR) is not included.
+  pictures. Text recognition (OCR) is not included yet.
 - **Exact & editable Word files** position text with Word *frames*. Microsoft Word and LibreOffice
   show them exactly; Google Docs doesn't support frames — use *Flowing document* there.
 - **Fonts:** if a PDF uses a font that isn't installed on your PC, Word shows a similar one; the
@@ -119,17 +159,31 @@ Requires Windows 10 or 11 (64-bit).
 - **Excel** reads columns from how the text lines up, which works well for normal tables. Merged
   cells or text wrapped inside a cell can become extra rows.
 - **Password-protected PDFs** can be opened, read and annotated, but their pages can't be rearranged.
+- The app's interface is in English.
 
-## Build from source
+## Open source — improve it with us
+
+PDF Tool is **open source** under the [MIT license](LICENSE). Anyone can use it for free — at home
+or at work — and anyone can **fix, change, improve and share** it.
+
+- **Found a bug or have an idea?** [Open an issue](https://github.com/aievolutionpl/PDFTool/issues/new)
+  and describe what happened or what you'd like.
+- **Want to change something yourself?** Fork the repository, make your change and send a pull
+  request. [CONTRIBUTING.md](CONTRIBUTING.md) explains how, step by step.
+- **Want your own version?** You're free to build on it — just keep the license notice.
+
+### Build from source
 
 You need [Node.js](https://nodejs.org/) 22 or newer.
 
 ```bash
+git clone https://github.com/aievolutionpl/PDFTool.git
+cd PDFTool
 npm install
 npm start               # build and launch the app
-npm run dist            # Windows installer → release/
-npm run dist:portable   # portable .exe → release/
-npm run dev:web         # UI preview in a browser at http://localhost:5199
+npm run dist            # Windows installer → release/PDF-Tool-Setup.exe
+npm run dist:portable   # portable app → release/PDF-Tool-Portable.exe
+npm run dev:web         # interface preview in a browser at http://localhost:5199
 ```
 
 | Path | Contents |
@@ -148,6 +202,12 @@ npm run dev:web         # UI preview in a browser at http://localhost:5199
 **Security:** the interface runs sandboxed with context isolation; it can only read and write files you
 picked in a dialog, opened, or dropped. Links inside PDFs open in your normal browser.
 
+## About AI Evolution Polska
+
+PDF Tool is created and maintained by **AI Evolution Polska** —
+**[www.aievolutionpolska.pl](https://www.aievolutionpolska.pl)**.
+Questions, ideas, or want a tool like this built for your company? Visit the website or open an issue.
+
 ## Built with
 
 [PDF.js](https://github.com/mozilla/pdf.js) (Apache-2.0) ·
@@ -159,4 +219,4 @@ picked in a dialog, opened, or dropped. Links inside PDFs open in your normal br
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © 2026 [AI Evolution Polska](https://www.aievolutionpolska.pl)
