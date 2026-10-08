@@ -7,6 +7,7 @@
   <title>PDF Tool</title>
   <link rel="preload" href="fonts/ibm-plex-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/ibm-plex-sans-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="resource" type="application/l10n" href="locale/locale.json">
   <link rel="stylesheet" href="pdf_viewer.css">
   <link rel="stylesheet" href="styles.css">
   <script src="theme-init.js"></script>
@@ -77,6 +78,7 @@
   <symbol id="i-fit-width" viewBox="0 0 24 24"><path d="M3 12h18"/><path d="m7 8-4 4 4 4"/><path d="m17 8 4 4-4 4"/></symbol>
   <symbol id="i-fit-page" viewBox="0 0 24 24"><rect width="14" height="18" x="5" y="3" rx="2"/><path d="M9 8h6"/><path d="M9 12h6"/><path d="M9 16h3"/></symbol>
   <symbol id="i-keyboard" viewBox="0 0 24 24"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01"/><path d="M10 8h.01"/><path d="M14 8h.01"/><path d="M18 8h.01"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/><path d="M7 16h10"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></symbol>
   <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
 </svg>
 
@@ -94,9 +96,10 @@
       <button class="icon-btn" data-cmd="save" data-needs-doc title="Save (Ctrl+S)"><svg class="icon"><use href="#i-save"/></svg></button>
       <button class="icon-btn" data-cmd="print" data-needs-doc title="Print… (Ctrl+P)"><svg class="icon"><use href="#i-print"/></svg></button>
     </div>
-    <div class="doc-title" id="docTitle"><span class="dirty-dot" title="Unsaved changes"></span><span class="doc-name">No document</span></div>
+    <div class="doc-title" id="docTitle"><span class="dirty-dot" title="Unsaved changes"></span><span class="doc-name" data-no-i18n>No document</span></div>
     <div class="titlebar-right">
       <button class="icon-btn" data-cmd="find" data-needs-doc title="Find in document (Ctrl+F)"><svg class="icon"><use href="#i-search"/></svg></button>
+      <button class="lang-btn" id="langBtn" title="Language" aria-haspopup="menu"><svg class="icon"><use href="#i-globe"/></svg><span class="lang-code">EN</span></button>
       <button class="icon-btn" id="themeBtn" title="Appearance"><svg class="icon"><use href="#i-moon"/></svg></button>
     </div>
   </header>
@@ -112,7 +115,7 @@
     <div class="toolbar-scroll">
       <!-- View -->
       <div class="tool-panel" data-panel="view">
-        <button class="tool" data-cmd="sidebar" title="Show or hide the page sidebar"><svg class="icon"><use href="#i-sidebar"/></svg><span>Sidebar</span></button>
+        <button class="tool" data-low data-cmd="sidebar" title="Show or hide the page sidebar"><svg class="icon"><use href="#i-sidebar"/></svg><span>Sidebar</span></button>
         <div class="sep"></div>
         <button class="tool" data-cursor="select" title="Select text"><svg class="icon"><use href="#i-pointer"/></svg><span>Select</span></button>
         <button class="tool" data-cursor="hand" title="Hand — drag to scroll"><svg class="icon"><use href="#i-hand"/></svg><span>Hand</span></button>
@@ -137,13 +140,13 @@
           <button class="seg" data-reading="night" title="Dark pages for reading at night">Night</button>
         </div>
         <div class="sep"></div>
-        <button class="tool" data-cmd="present" data-needs-doc title="Presentation (F5)"><svg class="icon"><use href="#i-present"/></svg><span>Present</span></button>
-        <button class="tool" data-cmd="properties" data-needs-doc title="Document properties"><svg class="icon"><use href="#i-info"/></svg><span>Properties</span></button>
+        <button class="tool" data-low data-cmd="present" data-needs-doc title="Presentation (F5)"><svg class="icon"><use href="#i-present"/></svg><span>Present</span></button>
+        <button class="tool" data-low data-cmd="properties" data-needs-doc title="Document properties"><svg class="icon"><use href="#i-info"/></svg><span>Properties</span></button>
       </div>
 
       <!-- Annotate -->
       <div class="tool-panel" data-panel="annotate" hidden>
-        <button class="tool" data-mode="none" data-needs-doc title="Select annotations (Esc)"><svg class="icon"><use href="#i-pointer"/></svg><span>Select</span></button>
+        <button class="tool" data-low data-mode="none" data-needs-doc title="Select annotations (Esc)"><svg class="icon"><use href="#i-pointer"/></svg><span>Select</span></button>
         <button class="tool" data-mode="freetext" data-needs-doc title="Add text — click on the page"><svg class="icon"><use href="#i-text"/></svg><span>Text</span></button>
         <button class="tool" data-mode="ink" data-needs-doc title="Draw freehand"><svg class="icon"><use href="#i-pen"/></svg><span>Draw</span></button>
         <button class="tool" data-mode="highlight" data-needs-doc title="Highlight — select text, or paint over images"><svg class="icon"><use href="#i-highlight"/></svg><span>Highlight</span></button>
@@ -185,10 +188,10 @@
         <div class="sep"></div>
         <button class="tool" data-cmd="rotate-page-ccw" data-needs-doc title="Rotate this page counter-clockwise"><svg class="icon"><use href="#i-rotate-ccw"/></svg></button>
         <button class="tool" data-cmd="rotate-page-cw" data-needs-doc title="Rotate this page clockwise"><svg class="icon"><use href="#i-rotate-cw"/></svg></button>
-        <button class="tool" data-cmd="rotate-all" data-needs-doc title="Rotate every page clockwise"><svg class="icon"><use href="#i-files"/></svg><span>Rotate all</span></button>
+        <button class="tool" data-low data-cmd="rotate-all" data-needs-doc title="Rotate every page clockwise"><svg class="icon"><use href="#i-files"/></svg><span>Rotate all</span></button>
         <button class="tool" data-cmd="delete-page" data-needs-doc title="Delete this page"><svg class="icon"><use href="#i-trash"/></svg><span>Delete</span></button>
-        <button class="tool" data-cmd="insert-blank" data-needs-doc title="Insert a blank page after this one"><svg class="icon"><use href="#i-file-plus"/></svg><span>Blank page</span></button>
-        <button class="tool" data-cmd="insert-pdf" data-needs-doc title="Insert another PDF after this page"><svg class="icon"><use href="#i-files"/></svg><span>Insert PDF</span></button>
+        <button class="tool" data-low data-cmd="insert-blank" data-needs-doc title="Insert a blank page after this one"><svg class="icon"><use href="#i-file-plus"/></svg><span>Blank page</span></button>
+        <button class="tool" data-low data-cmd="insert-pdf" data-needs-doc title="Insert another PDF after this page"><svg class="icon"><use href="#i-files"/></svg><span>Insert PDF</span></button>
         <div class="sep"></div>
         <button class="tool" data-cmd="extract" data-needs-doc title="Save chosen pages as a new PDF"><svg class="icon"><use href="#i-extract"/></svg><span>Extract</span></button>
         <button class="tool" data-cmd="split" data-needs-doc title="Split into several PDFs"><svg class="icon"><use href="#i-scissors"/></svg><span>Split</span></button>
@@ -204,7 +207,7 @@
         <button class="tool" data-cmd="to-excel" data-needs-doc title="Convert tables to an Excel workbook (.xlsx)"><svg class="icon"><use href="#i-sheet"/></svg><span>Excel</span></button>
         <button class="tool" data-cmd="to-images" data-needs-doc title="Export pages as PNG or JPG"><svg class="icon"><use href="#i-image"/></svg><span>Images</span></button>
         <button class="tool" data-cmd="to-text" data-needs-doc title="Extract all text (.txt)"><svg class="icon"><use href="#i-file-text"/></svg><span>Text</span></button>
-        <button class="tool" data-cmd="split" data-needs-doc title="Split into several PDFs"><svg class="icon"><use href="#i-scissors"/></svg><span>Split</span></button>
+        <button class="tool" data-low data-cmd="split" data-needs-doc title="Split into several PDFs"><svg class="icon"><use href="#i-scissors"/></svg><span>Split</span></button>
         <div class="sep"></div>
         <span class="group-label">Create a PDF</span>
         <button class="tool" data-cmd="images-to-pdf" title="Combine photos or scans into one PDF"><svg class="icon"><use href="#i-images"/></svg><span>From images</span></button>
@@ -220,8 +223,8 @@
         <button class="side-tab" data-side="outline">Bookmarks</button>
       </div>
       <div class="sidebar-body">
-        <div class="thumbs" id="thumbs"></div>
-        <div class="outline" id="outline" hidden></div>
+        <div class="thumbs" id="thumbs" data-no-i18n></div>
+        <div class="outline" id="outline" data-no-i18n hidden></div>
       </div>
     </aside>
     <div class="sidebar-resizer" id="sidebarResizer" title="Drag to resize"></div>
@@ -278,7 +281,7 @@
                 <h2 class="section-title">Recent</h2>
                 <button class="link-btn" id="clearRecent" hidden>Clear list</button>
               </div>
-              <ul id="recentList"></ul>
+              <ul id="recentList" data-no-i18n></ul>
               <p class="recent-empty" id="recentEmpty">Documents you open will be listed here.</p>
             </section>
           </div>
@@ -314,7 +317,7 @@
         </div>
       </div>
       <p class="org-tip">Drag to reorder · Click to select, Ctrl or Shift + click for several · Double-click to rotate</p>
-      <div class="organizer-grid" tabindex="0"></div>
+      <div class="organizer-grid" tabindex="0" data-no-i18n></div>
     </section>
   </main>
 
@@ -325,7 +328,7 @@
       <div class="page-box"><input id="pageInput" type="text" inputmode="numeric" value="–" aria-label="Page number" data-needs-doc><span id="pageCount">/ –</span></div>
       <button class="icon-btn small" data-cmd="next" data-needs-doc title="Next page"><svg class="icon"><use href="#i-chevron-right"/></svg></button>
     </div>
-    <div class="sb-info" id="docInfo"></div>
+    <div class="sb-info" id="docInfo" data-no-i18n></div>
     <div class="sb-group">
       <button class="icon-btn small" data-cmd="fit-width" data-needs-doc title="Fit width"><svg class="icon"><use href="#i-fit-width"/></svg></button>
       <button class="icon-btn small" data-cmd="fit-page" data-needs-doc title="Fit page"><svg class="icon"><use href="#i-fit-page"/></svg></button>

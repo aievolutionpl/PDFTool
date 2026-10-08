@@ -18,6 +18,7 @@ async function copyAssets() {
     [path.join(root, "src", "index.html"), path.join(dist, "index.html")],
     [path.join(root, "src", "styles.css"), path.join(dist, "styles.css")],
     [path.join(root, "src", "theme-init.js"), path.join(dist, "theme-init.js")],
+    [path.join(root, "src", "locale"), path.join(dist, "locale")],
     [path.join(pdfjs, "build", "pdf.worker.min.mjs"), path.join(dist, "pdf.worker.min.mjs")],
     [path.join(pdfjs, "web", "pdf_viewer.css"), path.join(dist, "pdf_viewer.css")],
     [path.join(pdfjs, "web", "images"), path.join(dist, "images")],

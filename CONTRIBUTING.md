@@ -40,6 +40,24 @@ Każdy może zgłaszać błędy, proponować pomysły i ulepszać kod. **Polska 
   `electron/preload.js` and the allow-list in `electron/main.js`.
 - Keep the design consistent: use the colour and spacing tokens at the top of `src/styles.css`.
 - Everything must keep working offline — don't load fonts, scripts or data from the internet.
+- Write interface texts in English and wrap them in `t()` (from `src/i18n.js`), then add the Polish
+  version to `src/locales/pl.js`. Texts written straight into `src/index.html` are translated
+  automatically — they only need an entry in `pl.js`.
+
+### Translations
+
+The interface is in English (default) and Polish. The user picks the language with the **EN / PL**
+button in the title bar; the choice is saved.
+
+- **Improve the Polish translation:** edit `src/locales/pl.js`. Each line is
+  `"English text": "Polish text"`. Keep placeholders like `{name}` or `{n}` unchanged.
+  Polish plural forms (1 strona, 2 strony, 5 stron) are in `plurals` at the bottom.
+- **Labels of the annotation tools** (text box, drawing, highlight) come from PDF.js and live in
+  `src/locale/pl/viewer.ftl`.
+- **Add a new language:** copy `src/locales/pl.js` to e.g. `de.js` and translate it, register it in
+  `DICTIONARIES`/`PLURALS` and `LANGUAGES` in `src/i18n.js`, add the PDF.js labels as
+  `src/locale/de/viewer.ftl` and to `src/locale/locale.json`, and add the close-dialog texts to
+  `NATIVE_TEXT` in `electron/main.js`.
 
 ### Releasing (maintainers)
 
@@ -61,7 +79,7 @@ the newest version.
 [Otwórz zgłoszenie (Issue)](https://github.com/aievolutionpl/PDFTool/issues/new) i napisz:
 
 - co zrobiłeś, czego się spodziewałeś i co się stało;
-- wersję PDF Tool (*File → About PDF Tool*) i wersję Windows;
+- wersję PDF Tool (*Plik → O programie PDF Tool*) i wersję Windows;
 - jeśli możesz — przykładowy PDF, w którym widać problem. **Tylko taki, który możesz udostępnić**,
   bez danych osobowych i poufnych.
 
@@ -89,3 +107,21 @@ Można pisać po polsku.
   `electron/preload.js` i listę dozwolonych plików w `electron/main.js`.
 - Trzymaj spójny wygląd: używaj kolorów i odstępów zdefiniowanych na początku `src/styles.css`.
 - Wszystko musi działać offline — nie ładuj czcionek, skryptów ani danych z internetu.
+- Teksty interfejsu pisz po angielsku i otaczaj funkcją `t()` (z `src/i18n.js`), a polską wersję
+  dodaj do `src/locales/pl.js`. Teksty wpisane wprost w `src/index.html` tłumaczą się same —
+  wystarczy wpis w `pl.js`.
+
+### Tłumaczenia
+
+Interfejs jest po angielsku (domyślnie) i po polsku. Język wybiera się przyciskiem **EN / PL** na
+pasku tytułu; wybór jest zapamiętywany.
+
+- **Popraw polskie tłumaczenie:** edytuj `src/locales/pl.js`. Każda linia to
+  `"tekst angielski": "tekst polski"`. Nie zmieniaj znaczników typu `{name}` czy `{n}`.
+  Odmiana liczebników (1 strona, 2 strony, 5 stron) jest w `plurals` na końcu pliku.
+- **Etykiety narzędzi adnotacji** (pole tekstowe, rysowanie, zakreślacz) pochodzą z PDF.js i są w
+  `src/locale/pl/viewer.ftl`.
+- **Dodaj nowy język:** skopiuj `src/locales/pl.js` np. do `de.js` i przetłumacz, dopisz go w
+  `DICTIONARIES`/`PLURALS` i `LANGUAGES` w `src/i18n.js`, dodaj etykiety PDF.js jako
+  `src/locale/de/viewer.ftl` i w `src/locale/locale.json`, a teksty okna zamykania w `NATIVE_TEXT`
+  w `electron/main.js`.

@@ -25,6 +25,7 @@ const MIME_TYPES = {
   ".mjs": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".json": "application/json",
+  ".ftl": "text/plain; charset=utf-8",
   ".map": "application/json",
   ".svg": "image/svg+xml",
   ".png": "image/png",
@@ -93,6 +94,36 @@ function addRecent(filePath) {
     app.addRecentDocument(filePath);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Texts shown by native dialogs, in the interface language set by the renderer.
+// ---------------------------------------------------------------------------
+const NATIVE_TEXT = {
+  en: {
+    save: "Save",
+    dontSave: "Don't save",
+    cancel: "Cancel",
+    unsavedTitle: "Unsaved changes",
+    unsavedMessage: name => `Save changes to "${name}" before closing?`,
+    thisDocument: "this document",
+    unsavedDetail: "Your annotations and page edits will be lost if you don't save them.",
+    open: "Open",
+    chooseFolder: "Choose a folder",
+  },
+  pl: {
+    save: "Zapisz",
+    dontSave: "Nie zapisuj",
+    cancel: "Anuluj",
+    unsavedTitle: "Niezapisane zmiany",
+    unsavedMessage: name => `Zapisać zmiany w pliku „${name}” przed zamknięciem?`,
+    thisDocument: "tym dokumencie",
+    unsavedDetail: "Jeśli ich nie zapiszesz, adnotacje i zmiany stron zostaną utracone.",
+    open: "Otwórz",
+    chooseFolder: "Wybierz folder",
+  },
+};
+let uiLanguage = "en";
+const text = () => NATIVE_TEXT[uiLanguage] || NATIVE_TEXT.en;
 
 // ---------------------------------------------------------------------------
 // Windows
@@ -174,15 +205,16 @@ function createWindow(launchFile = null) {
       return;
     }
     event.preventDefault();
+    const s = text();
     const choice = dialog.showMessageBoxSync(win, {
       type: "warning",
-      buttons: ["Save", "Don't save", "Cancel"],
+      buttons: [s.save, s.dontSave, s.cancel],
       defaultId: 0,
       cancelId: 2,
       noLink: true,
-      title: "Unsaved changes",
-      message: `Save changes to "${entry.name || "this document"}" before closing?`,
-      detail: "Your annotations and page edits will be lost if you don't save them.",
+      title: s.unsavedTitle,
+      message: s.unsavedMessage(entry.name || s.thisDocument),
+      detail: s.unsavedDetail,
     });
     if (choice === 0) {
       win.webContents.send("app:command", "save-and-close");
@@ -231,7 +263,7 @@ function registerIpc() {
     const properties = ["openFile"];
     if (opts.multiple) properties.push("multiSelections");
     const result = await dialog.showOpenDialog(win, {
-      title: opts.title || "Open",
+      title: opts.title || text().open,
       defaultPath: lastDir || app.getPath("documents"),
       filters: opts.filters || [{ name: "PDF documents", extensions: ["pdf"] }],
       properties,
@@ -293,7 +325,7 @@ function registerIpc() {
   ipcMain.handle("dialog:pickFolder", async (event, opts = {}) => {
     const win = BrowserWindow.fromWebContents(event.sender);
     const result = await dialog.showOpenDialog(win, {
-      title: opts.title || "Choose a folder",
+      title: opts.title || text().chooseFolder,
       defaultPath: lastDir || app.getPath("documents"),
       properties: ["openDirectory", "createDirectory"],
     });
@@ -364,6 +396,10 @@ function registerIpc() {
   });
 
   ipcMain.on("win:new", () => createWindow());
+
+  ipcMain.on("app:setLanguage", (_event, code) => {
+    if (NATIVE_TEXT[code]) uiLanguage = code;
+  });
 
   ipcMain.on("win:setTitleBar", (event, dark) => {
     const entry = entryFor(event);

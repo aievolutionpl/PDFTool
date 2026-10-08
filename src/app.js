@@ -4,6 +4,7 @@ import * as pdfjsLib from "pdfjs-dist";
 import {
   EventBus,
   FindState,
+  GenericL10n,
   LinkTarget,
   PDFFindController,
   PDFLinkService,
@@ -11,6 +12,7 @@ import {
   ScrollMode,
   SpreadMode,
 } from "pdfjs-dist/web/pdf_viewer.mjs";
+import { LANGUAGES, getLanguage, plural, setLanguage, t, translateDom } from "./i18n.js";
 import {
   $,
   $$,
@@ -48,8 +50,8 @@ const DOC_PARAMS = {
   enableXfa: false,
 };
 
-const PDF_FILTER = [{ name: "PDF documents", extensions: ["pdf"] }];
-const IMAGE_FILTER = [{ name: "Images", extensions: ["png", "jpg", "jpeg", "webp", "gif", "bmp"] }];
+const PDF_FILTER = [{ name: t("PDF documents"), extensions: ["pdf"] }];
+const IMAGE_FILTER = [{ name: t("Images"), extensions: ["png", "jpg", "jpeg", "webp", "gif", "bmp"] }];
 const MODES = {
   none: AET.NONE,
   freetext: AET.FREETEXT,
@@ -110,12 +112,15 @@ const linkService = new PDFLinkService({
   externalLinkRel: "noopener noreferrer nofollow",
 });
 const findController = new PDFFindController({ eventBus, linkService });
+// PDF.js' own labels (annotation toolbars, "Start typing…") come from locale/<lang>/viewer.ftl.
+const l10n = new GenericL10n(getLanguage() === "en" ? "en-US" : getLanguage());
 const viewer = new PDFViewer({
   container,
   viewer: $("#viewer"),
   eventBus,
   linkService,
   findController,
+  l10n,
   removePageBorders: true,
   annotationEditorMode: AET.NONE,
   annotationEditorHighlightColors: "yellow=#FFFF98,green=#53FFBC,blue=#80EBFF,pink=#FFCBE6,red=#FF4F5F",
@@ -123,6 +128,7 @@ const viewer = new PDFViewer({
   imageResourcesPath: "./images/",
 });
 linkService.setViewer(viewer);
+l10n.translate(container);
 
 eventBus.on("pagesinit", () => {
   const view = state.pendingView;
@@ -175,7 +181,7 @@ function askPassword(name, reason) {
   const wrong = reason === pdfjsLib.PasswordResponses.INCORRECT_PASSWORD;
   return openDialog({
     title: "Password required",
-    subtitle: `"${name}" is protected.`,
+    subtitle: t("\"{name}\" is protected.", { name }),
     content: `
       <label class="field"><span>${wrong ? "That password didn't work — try again" : "Enter the document password"}</span>
       <input class="input" type="password" name="password" autocomplete="off"></label>`,
@@ -184,7 +190,7 @@ function askPassword(name, reason) {
   }).then(v => (v ? v.password : null));
 }
 
-async function openDocument({ data, name, path = null, dirty = false, keepView = false, page = null, keepHistory = false }) {
+async function openDocument({ data, name, path = null, dirty = false, keepView = false, page = null, view = null, keepHistory = false }) {
   const loadId = ++state.loadId;
   let cancelled = false;
   const task = pdfjsLib.getDocument({ ...DOC_PARAMS, data: data.slice() });
@@ -201,7 +207,7 @@ async function openDocument({ data, name, path = null, dirty = false, keepView =
   try {
     pdf = await task.promise;
   } catch (err) {
-    if (!cancelled) errorToast(`Couldn't open "${name}"`, err);
+    if (!cancelled) errorToast(t("Couldn't open \"{name}\"", { name }), err);
     return false;
   }
   if (loadId !== state.loadId) {
@@ -212,11 +218,12 @@ async function openDocument({ data, name, path = null, dirty = false, keepView =
   const old = state.pdf;
   const oldKey = state.docKey;
   state.pendingView =
-    keepView && old
+    view ??
+    (keepView && old
       ? { page: page ?? viewer.currentPageNumber, scale: viewer.currentScaleValue, rotation: viewer.pagesRotation }
       : page
         ? { page }
-        : null;
+        : null);
 
   Object.assign(state, {
     pdf,
@@ -264,7 +271,7 @@ async function confirmDiscard() {
   if (!state.pdf || !isDirty()) return true;
   const choice = await choose({
     title: "Unsaved changes",
-    message: `Save changes to "${state.name}" first?`,
+    message: t("Save changes to \"{name}\" first?", { name: state.name }),
     buttons: [
       { label: "Cancel", value: "cancel" },
       { label: "Don't save", value: "discard" },
@@ -281,11 +288,11 @@ async function openViaDialog() {
   if (file) await openDocument({ data: file.data, name: file.name, path: file.path });
 }
 
-async function openPath(filePath, { skipConfirm = false } = {}) {
+async function openPath(filePath, { skipConfirm = false, view = null } = {}) {
   if (!skipConfirm && !(await confirmDiscard())) return;
   try {
     const file = await platform.readFile(filePath);
-    await openDocument({ data: file.data, name: file.name, path: file.path });
+    await openDocument({ data: file.data, name: file.name, path: file.path, view });
   } catch (err) {
     errorToast("Couldn't open the file", err);
     platform.recent.remove(filePath);
@@ -298,11 +305,11 @@ async function openGenerated(bytes, name) {
   if (!(await confirmDiscard())) {
     // Still let the user keep the result.
     const res = await platform.saveAs({ title: "Save PDF", defaultName: name, filters: PDF_FILTER, data: bytes });
-    if (res) toast(`Saved ${res.name}`, { type: "success" });
+    if (res) toast(t("Saved {name}", { name: res.name }), { type: "success" });
     return;
   }
   await openDocument({ data: bytes, name, path: null, dirty: true });
-  toast(`Created ${name} — it isn't saved yet.`, {
+  toast(t("Created {name} — it isn't saved yet.", { name }), {
     type: "success",
     timeout: 8000,
     action: { label: "Save", onClick: () => save({ saveAs: true }) },
@@ -343,7 +350,7 @@ async function save({ saveAs = false } = {}) {
     state.annotDirty = false;
     updateTitle();
     if (state.path) platform.recent.add(state.path);
-    toast(`Saved ${state.name}`, { type: "success", timeout: 2500 });
+    toast(t("Saved {name}", { name: state.name }), { type: "success", timeout: 2500 });
     return true;
   } catch (err) {
     state.annotDirty = wasAnnotDirty;
@@ -411,7 +418,7 @@ function updateTitle() {
   const dirty = !!state.pdf && isDirty();
   title.classList.toggle("has-doc", !!state.pdf);
   title.classList.toggle("dirty", dirty);
-  $(".doc-name", title).textContent = state.pdf ? state.name : "No document";
+  $(".doc-name", title).textContent = state.pdf ? state.name : t("No document");
   title.title = state.path || state.name || "";
   document.title = state.pdf ? `${dirty ? "● " : ""}${state.name} — PDF Tool` : "PDF Tool";
   platform.setDocState(dirty, state.pdf ? state.name : "");
@@ -458,6 +465,7 @@ function updateModeUI() {
   $$("#toolParams .param").forEach(p => p.classList.toggle("show", p.dataset.for === name));
   updateCursorUI();
   updateEditButtons();
+  fitToolbar();
 }
 
 function updateEditButtons() {
@@ -472,7 +480,19 @@ function switchTab(name) {
   $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.tab === name));
   $$(".tool-panel").forEach(p => (p.hidden = p.dataset.panel !== name));
   store.set("tab", name);
+  fitToolbar();
 }
+
+/** Drops tool labels step by step until the active tab's tools fit (small windows, longer translations). */
+function fitToolbar() {
+  const toolbar = $(".toolbar");
+  const scroller = $(".toolbar-scroll");
+  const overflowing = () => scroller.scrollWidth > scroller.clientWidth + 1;
+  toolbar.classList.remove("compact-1", "compact-2");
+  if (overflowing()) toolbar.classList.add("compact-1");
+  if (overflowing()) toolbar.classList.add("compact-2");
+}
+new ResizeObserver(() => fitToolbar()).observe($(".toolbar-scroll"));
 
 // ===========================================================================
 // Annotation tools
@@ -782,12 +802,12 @@ function updateFindCount(matchesCount, findState) {
   if (!query) {
     el.textContent = "";
   } else if (findState === FindState.NOT_FOUND) {
-    el.textContent = "No results";
+    el.textContent = t("No results");
     el.classList.add("not-found");
   } else if (matchesCount?.total) {
-    el.textContent = `${matchesCount.current} of ${matchesCount.total}`;
+    el.textContent = t("{current} of {total}", matchesCount);
   } else if (findState === FindState.PENDING) {
-    el.textContent = "Searching…";
+    el.textContent = t("Searching…");
   }
 }
 
@@ -849,7 +869,7 @@ function buildThumbnails() {
     const btn = document.createElement("button");
     btn.className = "thumb";
     btn.dataset.page = String(i);
-    btn.title = `Page ${i}`;
+    btn.title = t("Page {n}", { n: i });
     btn.innerHTML = `<div class="thumb-img skeleton" style="aspect-ratio: 1 / 1.414"></div><span class="thumb-num">${i}</span>`;
     frag.append(btn);
   }
@@ -873,7 +893,7 @@ function bindThumbs() {
     showMenu(
       { getBoundingClientRect: () => ({ left: e.clientX, right: e.clientX, top: e.clientY, bottom: e.clientY }) },
       [
-        { heading: `Page ${n}` },
+        { heading: t("Page {n}", { n }) },
         { label: "Rotate right", icon: "rotate-cw", onClick: () => rotatePages([n - 1], 90) },
         { label: "Rotate left", icon: "rotate-ccw", onClick: () => rotatePages([n - 1], -90) },
         { label: "Insert blank page after", icon: "file-plus", onClick: () => insertBlank(n) },
@@ -923,7 +943,7 @@ async function buildOutline() {
   if (state.pdf !== pdf) return;
   host.innerHTML = "";
   if (!outline?.length) {
-    host.innerHTML = `<div class="outline-empty">This document has no bookmarks.</div>`;
+    host.innerHTML = `<div class="outline-empty">${escapeHtml(t("This document has no bookmarks."))}</div>`;
     return;
   }
   host.append(renderOutline(outline, 0));
@@ -947,7 +967,7 @@ function renderOutline(items, depth) {
     }
     const link = document.createElement("button");
     link.className = "outline-link";
-    link.textContent = item.title || "(untitled)";
+    link.textContent = item.title || t("(untitled)");
     if (item.bold) link.style.fontWeight = "600";
     if (item.italic) link.style.fontStyle = "italic";
     link.addEventListener("click", () => {
@@ -977,24 +997,28 @@ function renderOutline(items, depth) {
 // Page operations
 // ===========================================================================
 const current = () => viewer.currentPageNumber || 1;
-const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
-
 function rotatePages(indices, delta) {
   return applyDocChange(bytes => ops.rotatePages(bytes, indices, delta), {
-    message: indices.length > 1 ? `Rotated ${plural(indices.length, "page")}` : `Rotated page ${indices[0] + 1}`,
+    message:
+      indices.length > 1
+        ? t("Rotated {pages}", { pages: plural(indices.length, "page", "acc") })
+        : t("Rotated page {n}", { n: indices[0] + 1 }),
   });
 }
 
 function deletePages(indices) {
   return applyDocChange(bytes => ops.deletePages(bytes, indices), {
-    message: indices.length > 1 ? `Deleted ${plural(indices.length, "page")}` : `Deleted page ${indices[0] + 1}`,
+    message:
+      indices.length > 1
+        ? t("Deleted {pages}", { pages: plural(indices.length, "page", "acc") })
+        : t("Deleted page {n}", { n: indices[0] + 1 }),
     page: Math.min(indices[0] + 1, (state.pdf?.numPages || 2) - indices.length),
   });
 }
 
 function insertBlank(afterPage) {
   return applyDocChange(bytes => ops.insertBlankPage(bytes, afterPage), {
-    message: `Inserted a blank page after page ${afterPage}`,
+    message: t("Inserted a blank page after page {n}", { n: afterPage }),
     page: afterPage + 1,
   });
 }
@@ -1004,7 +1028,7 @@ async function insertPdfFlow() {
   if (!file) return;
   const at = current();
   await applyDocChange(bytes => ops.insertPdf(bytes, file.data, at), {
-    message: `Inserted ${file.name} after page ${at}`,
+    message: t("Inserted {name} after page {n}", { name: file.name, n: at }),
     page: at + 1,
   });
 }
@@ -1017,10 +1041,10 @@ function pagesField({ allowCurrent = true } = {}) {
       <span class="field-label">Pages</span>
       <div class="choice-grid">
         <label class="choice"><input type="radio" name="pagesMode" value="all" checked><strong>All pages</strong><span>1–${total}</span></label>
-        ${allowCurrent ? `<label class="choice"><input type="radio" name="pagesMode" value="current"><strong>Current page</strong><span>Page ${current()}</span></label>` : ""}
+        ${allowCurrent ? `<label class="choice"><input type="radio" name="pagesMode" value="current"><strong>Current page</strong><span>${escapeHtml(t("Page {n}", { n: current() }))}</span></label>` : ""}
         <label class="choice"><input type="radio" name="pagesMode" value="range"><strong>Custom</strong><span>Choose below</span></label>
       </div>
-      <input class="input" name="pagesRange" placeholder="e.g. 1-3, 5, 8-${total}" data-no-autofocus>
+      <input class="input" name="pagesRange" placeholder="${escapeHtml(t("e.g. 1-3, 5, 8-{n}", { n: total }))}" data-no-autofocus>
     </div>`;
 }
 
@@ -1072,8 +1096,13 @@ async function extractFlow(preset = "") {
     const data = await ops.extractPages(await currentBytes(), pages.map(n => n - 1));
     p.close();
     const label = values.pages.replace(/\s+/g, "").replace(/,/g, "_");
-    const res = await platform.saveAs({ title: "Save extracted pages", defaultName: `${baseName(state.name)} (pages ${label}).pdf`, filters: PDF_FILTER, data });
-    if (res) savedToast(res, `Saved ${plural(pages.length, "page")} to ${res.name}`);
+    const res = await platform.saveAs({
+      title: "Save extracted pages",
+      defaultName: t("{name} (pages {range}).pdf", { name: baseName(state.name), range: label }),
+      filters: PDF_FILTER,
+      data,
+    });
+    if (res) savedToast(res, t("Saved {pages} to {name}", { pages: plural(pages.length, "page", "acc"), name: res.name }));
   } catch (err) {
     errorToast("Couldn't extract pages", err);
   } finally {
@@ -1093,7 +1122,7 @@ async function splitFlow() {
   const total = state.pdf.numPages;
   const values = await openDialog({
     title: "Split PDF",
-    subtitle: `Create several PDFs from "${state.name}" (${plural(total, "page")}).`,
+    subtitle: t("Create several PDFs from \"{name}\" ({pages}).", { name: state.name, pages: plural(total, "page") }),
     content: `
       <div class="choice-grid">
         <label class="choice"><input type="radio" name="mode" value="every" checked><strong>Every N pages</strong><span>Equal-sized parts</span></label>
@@ -1146,7 +1175,7 @@ async function splitFlow() {
     });
     const written = await platform.writeToFolder(folder, files);
     p.close();
-    savedToast({ path: isDesktop ? written[0] : null }, `Created ${plural(files.length, "PDF")}`);
+    savedToast({ path: isDesktop ? written[0] : null }, t("Created {files}", { files: plural(files.length, "PDF", "acc") }));
   } catch (err) {
     errorToast("Couldn't split the PDF", err);
   } finally {
@@ -1160,8 +1189,8 @@ async function watermarkFlow() {
     subtitle: "Stamps text across your pages. Any language works.",
     wide: true,
     content: `
-      <div class="wm-preview"><span id="wmPreview">CONFIDENTIAL</span></div>
-      <label class="field"><span>Text</span><input class="input" name="text" value="CONFIDENTIAL" maxlength="120"></label>
+      <div class="wm-preview"><span id="wmPreview" data-no-i18n></span></div>
+      <label class="field"><span>Text</span><input class="input" name="text" value="${escapeHtml(t("CONFIDENTIAL"))}" maxlength="120"></label>
       <div class="field-row">
         <label class="field"><span>Color</span><input type="color" name="color" value="#e5484d" class="input" style="padding:2px;width:64px"></label>
         <label class="field"><span>Font size (pt)</span><input class="input" type="number" name="fontSize" value="64" min="8" max="300"></label>
@@ -1209,7 +1238,7 @@ async function watermarkFlow() {
         layout: values.layout,
         pages,
       }),
-    { message: `Watermark added to ${plural(pages.length, "page")}`, busy: "Adding watermark…" },
+    { message: t("Watermark added ({pages})", { pages: plural(pages.length, "page") }), busy: "Adding watermark…" },
   );
 }
 
@@ -1219,7 +1248,7 @@ async function pageNumbersFlow() {
     content: `
       <div class="field-row">
         <label class="field"><span>Format</span>
-          <select name="format"><option value="n">1</option><option value="page-n">Page 1</option><option value="n-of-total">1 / ${state.pdf.numPages}</option><option value="page-n-of-total">Page 1 of ${state.pdf.numPages}</option></select></label>
+          <select name="format"><option value="n">1</option><option value="page-n">${escapeHtml(t("Page {n}", { n: 1 }))}</option><option value="n-of-total">1 / ${state.pdf.numPages}</option><option value="page-n-of-total">${escapeHtml(t("Page {n} of {total}", { n: 1, total: state.pdf.numPages }))}</option></select></label>
         <label class="field"><span>Position</span>
           <select name="position">
             <option value="bottom-center">Bottom center</option><option value="bottom-right">Bottom right</option><option value="bottom-left">Bottom left</option>
@@ -1268,7 +1297,7 @@ async function toImagesFlow() {
       <div class="field"><span class="field-label">Resolution</span><div class="choice-grid">
         <label class="choice"><input type="radio" name="dpi" value="96"><strong>Screen</strong><span>96 DPI</span></label>
         <label class="choice"><input type="radio" name="dpi" value="150" checked><strong>Standard</strong><span>150 DPI</span></label>
-        <label class="choice"><input type="radio" name="dpi" value="300"><strong>Print</strong><span>300 DPI</span></label>
+        <label class="choice"><input type="radio" name="dpi" value="300"><strong>Print quality</strong><span>300 DPI</span></label>
       </div></div>
       ${pagesField()}`,
     okLabel: "Export…",
@@ -1279,7 +1308,8 @@ async function toImagesFlow() {
   const pages = readPages(values);
   const ext = values.format;
   const base = baseName(state.name);
-  const fileName = n => `${base} - page ${String(n).padStart(String(state.pdf.numPages).length, "0")}.${ext}`;
+  const fileName = n =>
+    t("{name} - page {n}.{ext}", { name: base, n: String(n).padStart(String(state.pdf.numPages).length, "0"), ext });
   const filters = [{ name: ext.toUpperCase(), extensions: [ext === "jpg" ? "jpg" : "png"] }];
 
   if (pages.length === 1) {
@@ -1288,7 +1318,7 @@ async function toImagesFlow() {
       const data = await pageToImage(state.pdf, pages[0], { format: ext, dpi: Number(values.dpi) });
       p.close();
       const res = await platform.saveAs({ title: "Save image", defaultName: fileName(pages[0]), filters, data });
-      if (res) savedToast(res, `Saved ${res.name}`);
+      if (res) savedToast(res, t("Saved {name}", { name: res.name }));
     } catch (err) {
       errorToast("Couldn't export the image", err);
     } finally {
@@ -1304,14 +1334,14 @@ async function toImagesFlow() {
     let first = null;
     for (let i = 0; i < pages.length; i++) {
       if (p.cancelled) break;
-      p.update(i, pages.length, `Page ${pages[i]} (${i + 1} of ${pages.length})`);
+      p.update(i, pages.length, t("Page {n} ({i} of {total})", { n: pages[i], i: i + 1, total: pages.length }));
       const data = await pageToImage(state.pdf, pages[i], { format: ext, dpi: Number(values.dpi) });
       const [written] = await platform.writeToFolder(folder, [{ name: fileName(pages[i]), data }]);
       first ??= written;
     }
     p.close();
     if (p.cancelled) toast("Export cancelled.");
-    else savedToast({ path: isDesktop ? first : null }, `Exported ${plural(pages.length, "image")}`);
+    else savedToast({ path: isDesktop ? first : null }, t("Exported {images}", { images: plural(pages.length, "image", "acc") }));
   } catch (err) {
     errorToast("Couldn't export images", err);
   } finally {
@@ -1329,30 +1359,33 @@ const openAfterField = () => `
  */
 async function convertAndSave({ label, defaultName, filters, openAfter, run }) {
   store.set("openAfter", openAfter ? "1" : "0");
-  const target = await platform.pickSavePath({ title: `Save ${label}`, defaultName, filters });
+  const target = await platform.pickSavePath({ title: t("Save {label} file", { label }), defaultName, filters });
   if (!target) return;
-  const p = await progress(`Converting to ${label}…`, { cancellable: true });
+  const p = await progress(t("Converting to {label}…", { label }), { cancellable: true });
   const started = performance.now();
   try {
     const data = await run({
-      onProgress: (i, n, text) => p.update(i, n, text ? `${text}${n ? ` · ${Math.min(i + 1, n)} of ${n}` : ""}` : undefined),
+      onProgress: (i, n, text) =>
+        p.update(i, n, text && i < n ? t("{text} · {i} of {n}", { text, i: i + 1, n }) : text || undefined),
       isCancelled: () => p.cancelled,
     });
-    p.update(1, 1, "Saving…");
+    p.update(1, 1, t("Saving…"));
     await platform.writeOutput(target, data);
     p.close();
     const seconds = ((performance.now() - started) / 1000).toFixed(1);
     const open = () =>
-      platform.openPath(target.path).catch(err => errorToast(`Saved, but Windows couldn't open ${target.name}`, err));
+      platform
+        .openPath(target.path)
+        .catch(err => errorToast(t("Saved, but Windows couldn't open {name}", { name: target.name }), err));
     if (openAfter && target.path) {
       open();
-      toast(`Opened ${target.name} (converted in ${seconds}s)`, {
+      toast(t("Opened {name} (converted in {s}s)", { name: target.name, s: seconds }), {
         type: "success",
         timeout: 6000,
         action: { label: "Show in folder", onClick: () => platform.showInFolder(target.path) },
       });
     } else {
-      toast(`Saved ${target.name} (converted in ${seconds}s)`, {
+      toast(t("Saved {name} (converted in {s}s)", { name: target.name, s: seconds }), {
         type: "success",
         timeout: 8000,
         action: target.path ? { label: "Open", onClick: open } : null,
@@ -1360,7 +1393,7 @@ async function convertAndSave({ label, defaultName, filters, openAfter, run }) {
     }
   } catch (err) {
     if (err instanceof CancelledError) toast("Conversion cancelled.");
-    else errorToast(`Couldn't convert to ${label}`, err);
+    else errorToast(t("Couldn't convert to {label}", { label }), err);
   } finally {
     p.close();
   }
@@ -1452,7 +1485,7 @@ async function toTextFlow() {
       data,
     });
     if (res) {
-      toast(`Saved ${res.name}`, {
+      toast(t("Saved {name}", { name: res.name }), {
         type: "success",
         timeout: 6000,
         action: { label: "Copy text", onClick: () => navigator.clipboard.writeText(text).then(() => toast("Copied to clipboard")) },
@@ -1479,7 +1512,7 @@ function fileListDialog({ title, subtitle, files, addLabel, filters, okLabel, ex
     wide: true,
     content: `
       <ul class="file-list" data-list></ul>
-      <div><button type="button" class="btn btn-small" data-add>${icon("plus")}${escapeHtml(addLabel)}</button></div>
+      <div><button type="button" class="btn btn-small" data-add>${icon("plus")}${escapeHtml(t(addLabel))}</button></div>
       ${extra}`,
     okLabel,
     onMount(body) {
@@ -1494,13 +1527,13 @@ function fileListDialog({ title, subtitle, files, addLabel, filters, okLabel, ex
               ${thumbs ? `<img class="file-thumb" src="${thumbUrl(f)}" alt="">` : icon("file-text")}
               <span class="file-name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</span>
               <span class="file-meta">${formatBytes(f.data.byteLength)}</span>
-              <button type="button" class="icon-btn small" data-up="${i}" title="Move up" ${i === 0 ? "disabled" : ""}>${icon("arrow-up")}</button>
-              <button type="button" class="icon-btn small" data-down="${i}" title="Move down" ${i === list.length - 1 ? "disabled" : ""}>${icon("arrow-down")}</button>
-              <button type="button" class="icon-btn small danger" data-remove="${i}" title="Remove">${icon("x")}</button>
+              <button type="button" class="icon-btn small" data-up="${i}" title="${escapeHtml(t("Move up"))}" ${i === 0 ? "disabled" : ""}>${icon("arrow-up")}</button>
+              <button type="button" class="icon-btn small" data-down="${i}" title="${escapeHtml(t("Move down"))}" ${i === list.length - 1 ? "disabled" : ""}>${icon("arrow-down")}</button>
+              <button type="button" class="icon-btn small danger" data-remove="${i}" title="${escapeHtml(t("Remove"))}">${icon("x")}</button>
             </li>`,
               )
               .join("")
-          : `<li class="file-list-empty">No files yet — add some below.</li>`;
+          : `<li class="file-list-empty">${escapeHtml(t("No files yet — add some below."))}</li>`;
       };
       ul.addEventListener("click", e => {
         const btn = e.target.closest("button");
@@ -1524,14 +1557,14 @@ function fileListDialog({ title, subtitle, files, addLabel, filters, okLabel, ex
       render();
     },
     collect: (_body, values) => ({ ...values, files: list }),
-    validate: v => (v.files.length < min ? `Add at least ${plural(min, "file")}.` : null),
+    validate: v => (v.files.length < min ? t("Add at least {files}.", { files: plural(min, "file", "acc") }) : null),
   }).finally(() => urls.forEach(url => URL.revokeObjectURL(url)));
 }
 
 async function mergeFlow(preset = []) {
   const files = [...preset];
   if (state.pdf && !preset.length) {
-    files.push({ name: `${state.name} (current)`, data: await currentBytes(), current: true });
+    files.push({ name: t("{name} (current)", { name: state.name }), sourceName: state.name, data: await currentBytes(), current: true });
   }
   if (!files.length || (files.length === 1 && files[0].current)) {
     const picked = await platform.pickFiles({ title: "Choose PDFs to merge", filters: PDF_FILTER, multiple: true });
@@ -1552,7 +1585,8 @@ async function mergeFlow(preset = []) {
   try {
     const data = await ops.mergePdfs(values.files, (i, n, name) => p.update(i, n, name));
     p.close();
-    await openGenerated(data, `${baseName(values.files[0].name.replace(/ \(current\)$/, ""))} (merged).pdf`);
+    const firstName = values.files[0].sourceName || values.files[0].name;
+    await openGenerated(data, t("{name} (merged).pdf", { name: baseName(firstName) }));
   } catch (err) {
     errorToast("Couldn't merge", err);
   } finally {
@@ -1590,7 +1624,7 @@ async function imagesToPdfFlow(preset = []) {
     const data = await ops.imagesToPdf(values.files, values, (i, n, name) => p.update(i, n, name));
     p.close();
     const first = values.files[0].name.replace(/\.[^.]+$/, "");
-    await openGenerated(data, `${values.files.length === 1 ? first : "Images"}.pdf`);
+    await openGenerated(data, `${values.files.length === 1 ? first : t("Images")}.pdf`);
   } catch (err) {
     errorToast("Couldn't create the PDF", err);
   } finally {
@@ -1616,7 +1650,7 @@ async function printDocument() {
     host.append(style);
     for (let i = 1; i <= pdf.numPages; i++) {
       if (p.cancelled) return;
-      p.update(i - 1, pdf.numPages, `Page ${i} of ${pdf.numPages}`);
+      p.update(i - 1, pdf.numPages, t("Page {n} of {total}", { n: i, total: pdf.numPages }));
       const canvas = await renderPage(pdf, i, 150 / 72);
       const blob = await new Promise(r => canvas.toBlob(r, "image/png"));
       canvas.width = canvas.height = 0;
@@ -1651,7 +1685,7 @@ function pageSizeLabel(w, h) {
   const [a, b] = [Math.min(w, h), Math.max(w, h)];
   const name = Object.entries(named).find(([, [x, y]]) => Math.abs(a - x) < 3 && Math.abs(b - y) < 3)?.[0];
   const mm = v => Math.round((v / 72) * 25.4);
-  return `${mm(w)} × ${mm(h)} mm (${name ? `${name}, ` : ""}${w > h ? "landscape" : "portrait"})`;
+  return `${mm(w)} × ${mm(h)} mm (${name ? `${name}, ` : ""}${t(w > h ? "landscape" : "portrait")})`;
 }
 
 function formatPdfDate(value) {
@@ -1664,7 +1698,8 @@ async function propertiesFlow() {
   const { info } = await pdf.getMetadata().catch(() => ({ info: {} }));
   const page = await pdf.getPage(current());
   const vp = page.getViewport({ scale: 1 });
-  const row = (k, v) => `<dt>${escapeHtml(k)}</dt><dd>${escapeHtml(v || "—")}</dd>`;
+  // Labels are translated by the dialog; values are document data and stay as they are.
+  const row = (k, v) => `<dt>${escapeHtml(k)}</dt><dd data-no-i18n>${escapeHtml(v || "—")}</dd>`;
   const original = {
     title: info.Title || "",
     author: info.Author || "",
@@ -1680,13 +1715,13 @@ async function propertiesFlow() {
         ${state.path ? row("Location", state.path) : ""}
         ${row("Size", formatBytes(state.bytes.byteLength))}
         ${row("Pages", String(pdf.numPages))}
-        ${row("Page size", `${pageSizeLabel(vp.width, vp.height)} — page ${current()}`)}
+        ${row("Page size", t("{size} — page {n}", { size: pageSizeLabel(vp.width, vp.height), n: current() }))}
         ${row("PDF version", info.PDFFormatVersion)}
         ${row("Created by", info.Creator)}
         ${row("Producer", info.Producer)}
         ${row("Created", formatPdfDate(info.CreationDate))}
         ${row("Modified", formatPdfDate(info.ModDate))}
-        ${row("Protected", info.IsEncrypted ? "Yes (encrypted)" : "No")}
+        ${row("Protected", t(info.IsEncrypted ? "Yes (encrypted)" : "No"))}
       </dl>
       <p class="props-section">Description</p>
       <label class="field"><span>Title</span><input class="input" name="title" value="${escapeHtml(original.title)}"></label>
@@ -1714,8 +1749,12 @@ async function aboutFlow() {
         <div><strong style="font-size:15px;font-weight:600">PDF Tool</strong><br>
         <span style="color:var(--text-3);font:400 12px var(--mono)">v${escapeHtml(info.version)}${info.electron ? ` · Electron ${escapeHtml(info.electron)}` : ""}</span></div>
       </div>
-      <p class="modal-text">Built on open-source software: PDF.js by Mozilla (Apache-2.0) for rendering and annotations,
-      pdf-lib (MIT) for page editing, docx (MIT) for Word export, Electron (MIT), and the IBM Plex typeface (OFL).</p>`,
+      <p class="modal-text">${escapeHtml(t("Free, open-source PDF tool by AI Evolution Polska. Anyone can use, fix, change and improve it."))}</p>
+      <p class="modal-text about-links">
+        <a href="https://www.aievolutionpolska.pl" target="_blank" rel="noopener">www.aievolutionpolska.pl</a><br>
+        <a href="https://github.com/aievolutionpl/PDFTool" target="_blank" rel="noopener">${escapeHtml(t("Source code and updates on GitHub"))}</a>
+      </p>
+      <p class="modal-text about-credits">${escapeHtml(t("Built on open-source software: PDF.js by Mozilla (Apache-2.0), pdf-lib, docx and JSZip (MIT), Electron (MIT) and the IBM Plex typeface (OFL)."))}</p>`,
     okLabel: "Close",
     cancelLabel: "",
   });
@@ -1754,9 +1793,13 @@ function formatWhen(time) {
   const sameDay = date.toDateString() === now.toDateString();
   const yesterday = new Date(now - 86_400_000).toDateString() === date.toDateString();
   const hm = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  if (sameDay) return `Today ${hm}`;
-  if (yesterday) return `Yesterday ${hm}`;
-  return date.toLocaleDateString([], { day: "numeric", month: "short", year: date.getFullYear() === now.getFullYear() ? undefined : "numeric" });
+  if (sameDay) return t("Today {time}", { time: hm });
+  if (yesterday) return t("Yesterday {time}", { time: hm });
+  return date.toLocaleDateString(getLanguage(), {
+    day: "numeric",
+    month: "short",
+    year: date.getFullYear() === now.getFullYear() ? undefined : "numeric",
+  });
 }
 
 async function renderRecent() {
@@ -1772,7 +1815,7 @@ async function renderRecent() {
           <div class="recent-meta"><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.path.replace(/[\\/][^\\/]*$/, ""))}</span></div>
           <span class="recent-time">${escapeHtml(formatWhen(item.time))}</span>
         </button>
-        <button class="icon-btn small" data-remove="${escapeHtml(item.path)}" title="Remove from list">${icon("x")}</button>
+        <button class="icon-btn small" data-remove="${escapeHtml(item.path)}" title="${escapeHtml(t("Remove from list"))}">${icon("x")}</button>
       </li>`,
     )
     .join("");
@@ -1801,7 +1844,7 @@ function applyTheme(pref = store.get("theme", "system")) {
   const dark = pref === "dark" || (pref === "system" && darkQuery.matches);
   document.documentElement.dataset.theme = dark ? "dark" : "light";
   $("#themeBtn use").setAttribute("href", `#i-${pref === "system" ? "monitor" : dark ? "moon" : "sun"}`);
-  $("#themeBtn").title = `Theme: ${pref[0].toUpperCase()}${pref.slice(1)}`;
+  $("#themeBtn").title = t("Theme: {name}", { name: t({ light: "Light", dark: "Dark", system: "System" }[pref] || "System") });
   platform.setTitleBarTheme(dark);
 }
 darkQuery.addEventListener("change", () => applyTheme());
@@ -1829,7 +1872,7 @@ async function mainMenu(anchor) {
     { label: "New window", icon: "window", shortcut: "Ctrl+N", onClick: () => platform.newWindow() },
     { label: "Open…", icon: "open", shortcut: "Ctrl+O", onClick: openViaDialog },
     ...(recent.length
-      ? [{ heading: "Recent" }, ...recent.map(r => ({ label: r.name, title: r.path, icon: "clock", onClick: () => openPath(r.path) }))]
+      ? [{ heading: "Recent" }, ...recent.map(r => ({ label: r.name, raw: true, title: r.path, icon: "clock", onClick: () => openPath(r.path) }))]
       : []),
     { separator: true },
     { label: "Save", icon: "save", shortcut: "Ctrl+S", disabled: !has, onClick: () => save() },
@@ -1839,9 +1882,51 @@ async function mainMenu(anchor) {
     { label: "Document properties", icon: "info", disabled: !has, onClick: propertiesFlow },
     { label: "Close document", icon: "x", shortcut: "Ctrl+W", disabled: !has, onClick: closeDocument },
     { separator: true },
+    { heading: "Language" },
+    ...LANGUAGES.map(l => ({ label: l.name, raw: true, checked: l.code === getLanguage(), onClick: () => switchLanguage(l.code) })),
+    { separator: true },
     { label: "Keyboard shortcuts", icon: "keyboard", onClick: shortcutsFlow },
     { label: "About PDF Tool", icon: "info", onClick: aboutFlow },
   ]);
+}
+
+function languageMenu(anchor) {
+  showMenu(
+    anchor,
+    LANGUAGES.map(l => ({ label: l.name, raw: true, checked: l.code === getLanguage(), onClick: () => switchLanguage(l.code) })),
+    { align: "right" },
+  );
+}
+
+/**
+ * Changes the interface language. The window reloads so every label —
+ * including PDF.js' own — is rebuilt; the open document comes back on the same page.
+ */
+async function switchLanguage(code) {
+  if (code === getLanguage()) return;
+  if (!(await confirmDiscard())) return;
+  setLanguage(code);
+  try {
+    if (state.pdf && state.path) {
+      sessionStorage.setItem(
+        "pdftool.restore",
+        JSON.stringify({ path: state.path, page: viewer.currentPageNumber, scale: viewer.currentScaleValue }),
+      );
+    }
+  } catch {
+    // Without session storage the document simply isn't reopened.
+  }
+  location.reload();
+}
+
+function takeRestoreState() {
+  try {
+    const raw = sessionStorage.getItem("pdftool.restore");
+    sessionStorage.removeItem("pdftool.restore");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 }
 
 // ===========================================================================
@@ -1919,11 +2004,11 @@ const organizer = new Organizer($("#organizer"), {
       p.close();
       const res = await platform.saveAs({
         title: "Save extracted pages",
-        defaultName: `${baseName(state.name)} (extract).pdf`,
+        defaultName: t("{name} (extract).pdf", { name: baseName(state.name) }),
         filters: PDF_FILTER,
         data,
       });
-      if (res) savedToast(res, `Saved ${plural(plan.length, "page")} to ${res.name}`);
+      if (res) savedToast(res, t("Saved {pages} to {name}", { pages: plural(plan.length, "page", "acc"), name: res.name }));
     } catch (err) {
       errorToast("Couldn't extract pages", err);
     } finally {
@@ -1961,6 +2046,7 @@ function bindUi() {
 
   $("#menuBtn").addEventListener("click", e => mainMenu(e.currentTarget));
   $("#themeBtn").addEventListener("click", e => themeMenu(e.currentTarget));
+  $("#langBtn").addEventListener("click", e => languageMenu(e.currentTarget));
   $("#zoomBtn").addEventListener("click", e => zoomMenu(e.currentTarget));
   $("#layoutSelect").addEventListener("change", e => applyLayout(e.target.value));
 
@@ -2085,6 +2171,14 @@ function bindDragDrop() {
 // Start-up
 // ===========================================================================
 async function init() {
+  // Static interface text → current language (dynamic texts use t() where they're created).
+  translateDom(document.body);
+  document.title = t("PDF Tool");
+  const lang = LANGUAGES.find(l => l.code === getLanguage());
+  $("#langBtn .lang-code").textContent = lang.short;
+  platform.setLanguage(lang.code);
+  updateTitle();
+
   app.classList.add("no-doc");
   if (store.get("sidebar", "shown") === "hidden") app.classList.add("no-sidebar");
   $("#layoutSelect").value = store.get("layout", "vertical");
@@ -2105,7 +2199,9 @@ async function init() {
   });
 
   const launchFile = await platform.getLaunchFile();
+  const restore = takeRestoreState();
   if (launchFile) await openPath(launchFile, { skipConfirm: true });
+  else if (restore?.path) await openPath(restore.path, { skipConfirm: true, view: { page: restore.page, scale: restore.scale } });
 
   // Web preview convenience: ?file=sample.pdf opens a PDF served next to the app.
   const sample = new URLSearchParams(location.search).get("file");

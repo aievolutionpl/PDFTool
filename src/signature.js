@@ -1,5 +1,6 @@
 // Signature pad: draw, type or upload a signature and get back a trimmed PNG File.
 import { openDialog, escapeHtml } from "./ui.js";
+import { t } from "./i18n.js";
 
 const STORE_KEY = "pdftool.signature";
 const FONTS = ["Segoe Script", "Ink Free", "Lucida Handwriting", "Segoe Print", "Brush Script MT", "cursive"];
@@ -197,7 +198,7 @@ export async function createSignature() {
       // Typed preview
       const typeInput = body.querySelector(".sig-type-input");
       typeInput.addEventListener("input", () => {
-        body.querySelectorAll(".sig-font span").forEach(span => (span.textContent = typeInput.value || "Your Name"));
+        body.querySelectorAll(".sig-font span").forEach(span => (span.textContent = typeInput.value || t("Your Name")));
       });
 
       // Upload

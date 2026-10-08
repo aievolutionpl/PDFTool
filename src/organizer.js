@@ -2,6 +2,7 @@
 // delete, insert blank pages / other PDFs and extract selections.
 import { $, icon, escapeHtml, toast, errorToast } from "./ui.js";
 import { thumbnail } from "./convert.js";
+import { plural, t } from "./i18n.js";
 
 let uid = 0;
 
@@ -316,7 +317,9 @@ export class Organizer {
       this.items.splice(at, 0, ...added);
       this.selected = new Set(added.map(i => i.id));
       this.render();
-      toast(`Inserted ${pdf.numPages} page${pdf.numPages === 1 ? "" : "s"} from ${file.name}`, { type: "success" });
+      toast(t("Inserted {pages} from {name}", { pages: plural(pdf.numPages, "page", "acc"), name: file.name }), {
+        type: "success",
+      });
     } catch (err) {
       errorToast("Couldn't open that PDF", err);
     }
@@ -356,12 +359,12 @@ export class Organizer {
           <div class="org-thumb" data-kind="${item.type}">
             ${item.type === "blank" ? `<div class="org-blank"></div>` : `<div class="org-img skeleton"></div>`}
             <div class="org-card-actions">
-              <button type="button" class="icon-btn small" data-card="rotate" title="Rotate">${icon("rotate-cw")}</button>
-              <button type="button" class="icon-btn small danger" data-card="delete" title="Delete page">${icon("trash")}</button>
+              <button type="button" class="icon-btn small" data-card="rotate" title="${escapeHtml(t("Rotate"))}">${icon("rotate-cw")}</button>
+              <button type="button" class="icon-btn small danger" data-card="delete" title="${escapeHtml(t("Delete page"))}">${icon("trash")}</button>
             </div>
             <span class="org-check">${icon("check")}</span>
           </div>
-          <div class="org-label"><b>${i + 1}</b>${item.type === "page" ? "" : `<span title="${escapeHtml(item.label)}">${escapeHtml(item.type === "blank" ? "Blank page" : item.label)}</span>`}</div>
+          <div class="org-label"><b>${i + 1}</b>${item.type === "page" ? "" : `<span title="${escapeHtml(item.label)}">${escapeHtml(item.type === "blank" ? t("Blank page") : item.label)}</span>`}</div>
         </div>`,
       )
       .join("");
@@ -410,7 +413,10 @@ export class Organizer {
   updateCount() {
     const n = this.items.length;
     const s = this.selected.size;
-    this.countEl.textContent = `${n} page${n === 1 ? "" : "s"}${s ? ` · ${s} selected` : ""}${this.isModified() ? " · unsaved changes" : ""}`;
+    const parts = [plural(n, "page")];
+    if (s) parts.push(t("{n} selected", { n: s }));
+    if (this.isModified()) parts.push(t("unsaved changes"));
+    this.countEl.textContent = parts.join(" · ");
     $("[data-org='apply']", this.root).disabled = !this.isModified();
   }
 }

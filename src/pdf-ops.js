@@ -1,6 +1,7 @@
 // Document editing with pdf-lib. Every function takes PDF bytes and returns
 // new PDF bytes (Uint8Array) — the viewer then reloads the result.
 import { PDFDocument, PDFName, StandardFonts, degrees, rgb } from "pdf-lib";
+import { t } from "./i18n.js";
 
 export const PAGE_SIZES = {
   A4: [595.28, 841.89],
@@ -370,9 +371,9 @@ export async function addPageNumbers(bytes, opts) {
     const last = total + (opts.startAt ?? 1) - 1;
     const label = {
       n: `${n}`,
-      "page-n": `Page ${n}`,
+      "page-n": t("Page {n}", { n }),
       "n-of-total": `${n} / ${last}`,
-      "page-n-of-total": `Page ${n} of ${last}`,
+      "page-n-of-total": t("Page {n} of {total}", { n, total: last }),
     }[opts.format || "n"];
     const textWidth = font.widthOfTextAtSize(label, size);
     const frame = visualFrame(page);

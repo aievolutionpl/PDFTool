@@ -31,7 +31,7 @@
   <a href="README.md">English</a> · <b>Polski</b>
 </p>
 
-![PDF Tool z otwartą fakturą i paskiem miniatur stron](docs/screenshots/viewer.png)
+![PDF Tool po polsku, z otwartą fakturą i paskiem miniatur stron](docs/screenshots/viewer-pl.png)
 
 PDF Tool to aplikacja na komputer do codziennej pracy z plikami PDF: otwieranie i czytanie, pisanie
 i rysowanie na dokumentach, podpisywanie, układanie stron oraz zamiana na Worda, Excela lub obrazy.
@@ -45,11 +45,15 @@ dokumenty nigdy nie są nigdzie wysyłane.
 2. **Otwórz pobrany plik.** Windows może pokazać niebieskie okno *„System Windows ochronił ten komputer”*.
    Kliknij **Więcej informacji**, a potem **Uruchom mimo to**.
    <br><sub>Ten komunikat pojawia się, bo aplikacja nie ma płatnego certyfikatu podpisu — to normalne w darmowym oprogramowaniu open source. Cały kod źródłowy jest w tym repozytorium.</sub>
-3. **Przejdź przez instalator** (jest po angielsku): zostaw zaznaczone **Only for me** (tylko dla mnie) →
-   **Next** (dalej) → zostaw proponowany folder → **Install** (zainstaluj) → **Finish** (zakończ).
+3. **Przejdź przez instalator** (wyświetla się w języku Windows): zostaw zaznaczone **Tylko dla mnie** →
+   **Dalej** → zostaw proponowany folder → **Zainstaluj** → **Zakończ**.
    PDF Tool uruchomi się sam, a skrót znajdziesz w menu Start i na pulpicie.
+   <br><sub>Na angielskim Windowsie przyciski to: Only for me → Next → Install → Finish.</sub>
 
-Przy opcji *Only for me* nie są potrzebne uprawnienia administratora.
+Przy opcji *Tylko dla mnie* nie są potrzebne uprawnienia administratora.
+
+> **Interfejs po polsku:** aplikacja startuje po angielsku. Kliknij przycisk **EN** w prawym górnym rogu
+> okna i wybierz **Polski** — wybór zostanie zapamiętany. Otwarty dokument zostanie na swoim miejscu.
 
 <details>
 <summary><b>Otwieraj wszystkie PDF-y w PDF Tool</b></summary>
@@ -86,6 +90,7 @@ Wymagania: Windows 10 lub 11, 64-bitowy.
 | **Notatki i podpis** | Pola tekstowe · rysowanie odręczne · zakreślacz · obrazy · podpis (narysuj, wpisz albo wgraj zdjęcie — białe tło usuwa się samo) · cofnij/ponów · wszystko zapisuje się w PDF-ie, więc widać to także w innych czytnikach |
 | **Strony** | Organizator stron z przeciąganiem · obracanie · usuwanie · wstawianie pustych stron lub innego PDF-a · wyodrębnianie stron · dzielenie na kilka plików · znak wodny (w każdym języku) · numeracja stron · edycja tytułu i autora |
 | **Konwersja** | PDF → Word (3 układy) · PDF → Excel · PDF → PNG/JPG · PDF → tekst · obrazy → PDF · łączenie PDF-ów |
+| **Język** | Polski i angielski — przełączasz przyciskiem **EN / PL** na pasku tytułu |
 
 ### PDF → Word, który wygląda jak oryginał
 
@@ -93,13 +98,13 @@ Wymagania: Windows 10 lub 11, 64-bitowy.
 
 Przy konwersji wybierasz jeden z trzech układów:
 
-- **Exact & editable — dokładny i edytowalny** *(domyślny)* — plik Worda wygląda jak PDF. Każda linijka
+- **Dokładny i edytowalny** *(domyślny)* — plik Worda wygląda jak PDF. Każda linijka
   to prawdziwy tekst w Wordzie, który możesz edytować — w tym samym miejscu, tą samą czcionką, rozmiarem
   i kolorem. Obrazy, linie i kolorowe tła zostają na swoim miejscu pod tekstem. Obrócony tekst, np.
   pieczątka „PAID” powyżej, zostaje częścią obrazu.
-- **Flowing document — dokument z płynnym tekstem** — akapity, nagłówki, listy i prawdziwe tabele
+- **Dokument z płynnym tekstem** — akapity, nagłówki, listy i prawdziwe tabele
   Worda, które przelewają się podczas pisania. Najlepszy, gdy chcesz przepisać treść.
-- **Page pictures — obrazy stron** — idealna kopia każdej strony jako obraz. Bez edycji.
+- **Obrazy stron** — idealna kopia każdej strony jako obraz. Bez edycji.
 
 ### PDF → Excel
 
@@ -118,7 +123,7 @@ arkuszu, gdy tabela ciągnie się przez kilka stron.
 
 ### Konwersja
 
-![Okno konwersji do Worda](docs/screenshots/convert-word.png)
+![Okno konwersji do Worda po polsku](docs/screenshots/convert-word-pl.png)
 
 ### Tryb ciemny
 
@@ -126,19 +131,19 @@ arkuszu, gdy tabela ciągnie się przez kilka stron.
 
 ## Jak to zrobić
 
-Interfejs aplikacji jest po angielsku — w nawiasach podajemy nazwy przycisków, które zobaczysz.
+Nazwy przycisków dotyczą polskiej wersji interfejsu (przycisk **EN / PL** na pasku tytułu).
 
 | Chcę… | Zrób tak |
 | --- | --- |
-| Otworzyć PDF | **Ctrl+O**, przeciągnij plik na okno albo wybierz go z listy *Recent* na ekranie startowym |
-| Pisać, rysować lub zakreślać na PDF-ie | Zakładka **Annotate** → *Text*, *Draw* lub *Highlight*. Później kliknij notatkę, żeby ją przesunąć, zmienić lub usunąć |
-| Podpisać dokument | **Annotate → Sign**, potem przeciągnij podpis na miejsce. Zaznacz *Remember*, żeby użyć go ponownie |
-| Zmienić kolejność, obrócić lub usunąć strony | **Pages → Organize pages**, przeciągnij strony, potem *Apply changes* |
-| Wyciągnąć kilka stron | **Pages → Extract** (np. `1-3, 7`) albo *Split*, żeby podzielić na kilka plików |
-| Zamienić PDF na Worda / Excela | **Convert → Word** lub **Excel**. Wybierz, gdzie zapisać — plik otworzy się, gdy będzie gotowy |
-| Zrobić jeden PDF ze zdjęć lub skanów | **Convert → From images** (albo przeciągnij zdjęcia na okno) |
-| Połączyć kilka PDF-ów | **Convert → Merge PDFs** (albo przeciągnij kilka PDF-ów na okno) |
-| Cofnąć zmianę stron | Kliknij **Undo** w powiadomieniu, które pojawia się po zmianie |
+| Otworzyć PDF | **Ctrl+O**, przeciągnij plik na okno albo wybierz go z listy *Ostatnie* na ekranie startowym |
+| Pisać, rysować lub zakreślać na PDF-ie | Zakładka **Adnotacje** → *Tekst*, *Rysuj* lub *Wyróżnij*. Później kliknij adnotację, żeby ją przesunąć, zmienić lub usunąć |
+| Podpisać dokument | **Adnotacje → Podpisz**, potem przeciągnij podpis na miejsce. Zaznacz *Zapamiętaj ten podpis*, żeby użyć go ponownie |
+| Zmienić kolejność, obrócić lub usunąć strony | **Strony → Organizuj strony**, przeciągnij strony, potem *Zastosuj zmiany* |
+| Wyciągnąć kilka stron | **Strony → Wyodrębnij** (np. `1-3, 7`) albo *Podziel*, żeby podzielić na kilka plików |
+| Zamienić PDF na Worda / Excela | **Konwersja → Word** lub **Excel**. Wybierz, gdzie zapisać — plik otworzy się, gdy będzie gotowy |
+| Zrobić jeden PDF ze zdjęć lub skanów | **Konwersja → Z obrazów** (albo przeciągnij zdjęcia na okno) |
+| Połączyć kilka PDF-ów | **Konwersja → Połącz PDF-y** (albo przeciągnij kilka PDF-ów na okno) |
+| Cofnąć zmianę stron | Kliknij **Cofnij** w powiadomieniu, które pojawia się po zmianie |
 | Zapisać | **Ctrl+S** zapisuje plik, **Ctrl+Shift+S** zapisuje kopię. Przy zamykaniu z niezapisanymi zmianami aplikacja zapyta |
 
 ### Skróty klawiszowe
@@ -158,9 +163,9 @@ Interfejs aplikacji jest po angielsku — w nawiasach podajemy nazwy przycisków
 
 - **Zeskanowane PDF-y** (zdjęcia kartek) nie mają w środku tekstu, więc do Worda i Excela trafiają
   jako obrazy. Rozpoznawania tekstu (OCR) jeszcze nie ma.
-- **Pliki Worda w układzie „Exact & editable”** ustawiają tekst za pomocą *ramek* Worda. Microsoft Word
-  i LibreOffice pokazują je dokładnie; Dokumenty Google nie obsługują ramek — tam użyj
-  *Flowing document*.
+- **Pliki Worda w układzie „Dokładny i edytowalny”** ustawiają tekst za pomocą *ramek* Worda. Microsoft
+  Word i LibreOffice pokazują je dokładnie; Dokumenty Google nie obsługują ramek — tam użyj układu
+  *Dokument z płynnym tekstem*.
 - **Czcionki:** jeśli PDF używa czcionki, której nie masz na komputerze, Word pokaże podobną — układ
   zostaje taki sam.
 - **Excel** odczytuje kolumny z tego, jak tekst jest wyrównany — sprawdza się przy zwykłych tabelach.

@@ -1,4 +1,6 @@
 // Small UI toolkit: icons, modal dialogs, toasts, progress overlay, menus.
+// Fixed English texts passed in are translated here (see i18n.js).
+import { t, translateDom } from "./i18n.js";
 
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -57,22 +59,23 @@ export function openDialog({
       <form class="modal-form" novalidate>
         <header class="modal-header">
           <div>
-            <h2 class="modal-title">${escapeHtml(title)}</h2>
-            ${subtitle ? `<p class="modal-subtitle">${escapeHtml(subtitle)}</p>` : ""}
+            <h2 class="modal-title">${escapeHtml(t(title))}</h2>
+            ${subtitle ? `<p class="modal-subtitle">${escapeHtml(t(subtitle))}</p>` : ""}
           </div>
-          <button type="button" class="icon-btn" data-cancel aria-label="Close">${icon("x")}</button>
+          <button type="button" class="icon-btn" data-cancel aria-label="${escapeHtml(t("Close"))}">${icon("x")}</button>
         </header>
         <div class="modal-body">${content}</div>
         <p class="modal-error" hidden></p>
         <footer class="modal-footer">
-          ${cancelLabel ? `<button type="button" class="btn" data-cancel>${escapeHtml(cancelLabel)}</button>` : ""}
-          ${hideOk ? "" : `<button type="submit" class="btn ${danger ? "btn-danger" : "btn-primary"}">${escapeHtml(okLabel)}</button>`}
+          ${cancelLabel ? `<button type="button" class="btn" data-cancel>${escapeHtml(t(cancelLabel))}</button>` : ""}
+          ${hideOk ? "" : `<button type="submit" class="btn ${danger ? "btn-danger" : "btn-primary"}">${escapeHtml(t(okLabel))}</button>`}
         </footer>
       </form>`;
     document.body.append(dlg);
 
     const form = dlg.querySelector("form");
     const body = dlg.querySelector(".modal-body");
+    translateDom(body);
     const errorEl = dlg.querySelector(".modal-error");
     let settled = false;
 
@@ -101,7 +104,7 @@ export function openDialog({
       const values = readValues();
       const error = validate ? await validate(values, body) : null;
       if (error) {
-        errorEl.textContent = error;
+        errorEl.textContent = t(error);
         errorEl.hidden = false;
         return;
       }
@@ -136,10 +139,10 @@ export function choose({ title, message, buttons }) {
     dlg.className = "modal";
     dlg.innerHTML = `
       <div class="modal-form">
-        <header class="modal-header"><div><h2 class="modal-title">${escapeHtml(title)}</h2></div></header>
-        <div class="modal-body"><p class="modal-text">${escapeHtml(message)}</p></div>
+        <header class="modal-header"><div><h2 class="modal-title">${escapeHtml(t(title))}</h2></div></header>
+        <div class="modal-body"><p class="modal-text">${escapeHtml(t(message))}</p></div>
         <footer class="modal-footer">${buttons
-          .map((b, i) => `<button type="button" class="btn ${b.kind ? `btn-${b.kind}` : ""}" data-i="${i}">${escapeHtml(b.label)}</button>`)
+          .map((b, i) => `<button type="button" class="btn ${b.kind ? `btn-${b.kind}` : ""}" data-i="${i}">${escapeHtml(t(b.label))}</button>`)
           .join("")}</footer>
       </div>`;
     document.body.append(dlg);
@@ -163,7 +166,7 @@ export function choose({ title, message, buttons }) {
 export async function confirmDialog({ title, message, okLabel = "Continue", cancelLabel = "Cancel", danger = false }) {
   const result = await openDialog({
     title,
-    content: `<p class="modal-text">${escapeHtml(message)}</p>`,
+    content: `<p class="modal-text">${escapeHtml(t(message))}</p>`,
     okLabel,
     cancelLabel,
     danger,
@@ -187,11 +190,11 @@ export function toast(message, { type = "info", timeout = 4000, action = null } 
   const el = document.createElement("div");
   el.className = `toast toast-${type}`;
   const iconName = { success: "check", error: "alert", info: "info" }[type] || "info";
-  el.innerHTML = `${icon(iconName)}<span class="toast-msg">${escapeHtml(message)}</span>`;
+  el.innerHTML = `${icon(iconName)}<span class="toast-msg">${escapeHtml(t(message))}</span>`;
   if (action) {
     const btn = document.createElement("button");
     btn.className = "toast-action";
-    btn.textContent = action.label;
+    btn.textContent = t(action.label);
     btn.addEventListener("click", () => {
       action.onClick();
       dismiss();
@@ -200,7 +203,7 @@ export function toast(message, { type = "info", timeout = 4000, action = null } 
   }
   const close = document.createElement("button");
   close.className = "toast-close";
-  close.setAttribute("aria-label", "Dismiss");
+  close.setAttribute("aria-label", t("Dismiss"));
   close.innerHTML = icon("x");
   close.addEventListener("click", () => dismiss());
   el.append(close);
@@ -218,8 +221,8 @@ export function toast(message, { type = "info", timeout = 4000, action = null } 
 
 export function errorToast(prefix, err) {
   console.error(prefix, err);
-  const detail = err?.message ? `: ${err.message}` : "";
-  toast(`${prefix}${detail}`, { type: "error", timeout: 7000 });
+  const detail = err?.message ? `: ${t(err.message)}` : "";
+  toast(`${t(prefix)}${detail}`, { type: "error", timeout: 7000 });
 }
 
 // ---------------------------------------------------------------------------
@@ -231,10 +234,10 @@ export function progress(label, { cancellable = false } = {}) {
   el.innerHTML = `
     <div class="progress-card" role="progressbar" aria-valuemin="0" aria-valuemax="100">
       <div class="spinner"></div>
-      <div class="progress-label">${escapeHtml(label)}</div>
+      <div class="progress-label">${escapeHtml(t(label))}</div>
       <div class="progress-track"><div class="progress-bar"></div></div>
       <div class="progress-detail"></div>
-      ${cancellable ? `<button class="btn btn-small" data-cancel>Cancel</button>` : ""}
+      ${cancellable ? `<button class="btn btn-small" data-cancel>${escapeHtml(t("Cancel"))}</button>` : ""}
     </div>`;
   document.body.append(el);
   const bar = el.querySelector(".progress-bar");
@@ -246,7 +249,7 @@ export function progress(label, { cancellable = false } = {}) {
       const pct = total ? Math.round((done / total) * 100) : 0;
       bar.style.width = `${pct}%`;
       card.setAttribute("aria-valuenow", String(pct));
-      detail.textContent = text ?? (total ? `${done} of ${total}` : "");
+      detail.textContent = text ?? (total ? t("{current} of {total}", { current: done, total }) : "");
     },
     close() {
       el.remove();
@@ -254,7 +257,7 @@ export function progress(label, { cancellable = false } = {}) {
   };
   el.querySelector("[data-cancel]")?.addEventListener("click", () => {
     handle.cancelled = true;
-    detail.textContent = "Cancelling…";
+    detail.textContent = t("Cancelling…");
   });
   // Let the overlay paint before heavy work starts.
   return new Promise(resolve => requestAnimationFrame(() => setTimeout(() => resolve(handle), 0)));
@@ -271,7 +274,8 @@ export function closeMenus() {
 }
 
 /**
- * items: [{ label, icon, shortcut, onClick, disabled, separator, submenu: items }]
+ * items: [{ label, icon, shortcut, onClick, disabled, checked, raw, separator, heading }]
+ * Labels are translated unless `raw` is set (e.g. file names).
  */
 export function showMenu(anchor, items, { align = "left" } = {}) {
   closeMenus();
@@ -299,16 +303,18 @@ function buildMenu(items) {
     if (item.heading) {
       const h = document.createElement("div");
       h.className = "menu-heading";
-      h.textContent = item.heading;
+      h.textContent = t(item.heading);
       menu.append(h);
       continue;
     }
     const btn = document.createElement("button");
     btn.className = "menu-item";
-    btn.setAttribute("role", "menuitem");
+    btn.setAttribute("role", item.checked === undefined ? "menuitem" : "menuitemradio");
+    if (item.checked !== undefined) btn.setAttribute("aria-checked", String(!!item.checked));
     btn.disabled = !!item.disabled;
-    btn.innerHTML = `${item.icon ? icon(item.icon) : `<span class="icon"></span>`}
-      <span class="menu-label">${escapeHtml(item.label)}</span>
+    const iconHtml = item.checked ? icon("check") : item.icon ? icon(item.icon) : `<span class="icon"></span>`;
+    btn.innerHTML = `${iconHtml}
+      <span class="menu-label">${escapeHtml(item.raw ? item.label : t(item.label))}</span>
       ${item.hint ? `<span class="menu-hint">${escapeHtml(item.hint)}</span>` : ""}
       ${item.shortcut ? `<kbd>${escapeHtml(item.shortcut)}</kbd>` : ""}`;
     btn.title = item.title || "";
@@ -347,7 +353,7 @@ window.addEventListener("resize", closeMenus);
 export function parsePageRanges(text, pageCount) {
   const result = [];
   const parts = String(text).split(/[,;\s]+/).filter(Boolean);
-  if (!parts.length) throw new Error("Enter at least one page or range.");
+  if (!parts.length) throw new Error(t("Enter at least one page or range."));
   for (const part of parts) {
     const m = part.match(/^(\d*)\s*-\s*(\d*)$/);
     let from;
@@ -358,10 +364,10 @@ export function parsePageRanges(text, pageCount) {
     } else if (/^\d+$/.test(part)) {
       from = to = parseInt(part, 10);
     } else {
-      throw new Error(`"${part}" is not a valid page or range.`);
+      throw new Error(t("\"{part}\" is not a valid page or range.", { part }));
     }
     if (from < 1 || to > pageCount || from > to) {
-      throw new Error(`"${part}" is outside 1–${pageCount}.`);
+      throw new Error(t("\"{part}\" is outside 1–{max}.", { part, max: pageCount }));
     }
     const range = [];
     for (let p = from; p <= to; p++) range.push(p);

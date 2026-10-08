@@ -32,6 +32,7 @@ contextBridge.exposeInMainWorld("pdftool", {
   forceClose: () => ipcRenderer.send("win:forceClose"),
   newWindow: () => ipcRenderer.send("win:new"),
   setTitleBarTheme: dark => ipcRenderer.send("win:setTitleBar", dark),
+  setLanguage: code => ipcRenderer.send("app:setLanguage", code),
   appInfo: () => ipcRenderer.invoke("app:info"),
 
   onOpenFile: callback => ipcRenderer.on("app:openFile", (_event, filePath) => callback(filePath)),

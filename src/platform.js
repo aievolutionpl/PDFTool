@@ -1,8 +1,18 @@
 // Thin wrapper over the Electron preload API (window.pdftool). When the UI runs
 // in a plain browser (web preview), the same calls fall back to file inputs
 // and downloads so every feature can still be exercised.
+import { t } from "./i18n.js";
 
 const native = window.pdftool || null;
+
+/** Dialog titles and file-type names shown by Windows' own dialogs, in the interface language. */
+function localizeDialog(opts = {}) {
+  return {
+    ...opts,
+    title: opts.title && t(opts.title),
+    filters: opts.filters?.map(f => ({ ...f, name: t(f.name) })),
+  };
+}
 export const isDesktop = !!native;
 
 const MIME_BY_EXT = {
@@ -55,13 +65,13 @@ function browserDownload(name, data) {
 export const platform = {
   /** @returns {Promise<Array<{name: string, path: string|null, data: Uint8Array}>>} */
   pickFiles(opts = {}) {
-    return native ? native.pickFiles(opts) : browserPick(opts);
+    return native ? native.pickFiles(localizeDialog(opts)) : browserPick(opts);
   },
 
   /** Shows a save dialog and writes `data`. @returns {Promise<{path, name}|null>} */
   async saveAs({ title, defaultName, filters, data }) {
     if (native) {
-      return native.saveFile({ title, defaultName, filters, data });
+      return native.saveFile({ ...localizeDialog({ title, filters }), defaultName, data });
     }
     browserDownload(defaultName, data);
     return { path: null, name: defaultName };
@@ -69,7 +79,7 @@ export const platform = {
 
   /** Asks where to save before doing slow work. @returns {Promise<{path, name}|null>} */
   async pickSavePath({ title, defaultName, filters }) {
-    if (native) return native.pickSavePath({ title, defaultName, filters });
+    if (native) return native.pickSavePath({ ...localizeDialog({ title, filters }), defaultName });
     return { path: null, name: defaultName };
   },
 
@@ -97,7 +107,7 @@ export const platform = {
 
   /** @returns {Promise<string|null>} a folder token to pass to writeToFolder. */
   async pickFolder(opts) {
-    return native ? native.pickFolder(opts) : "downloads";
+    return native ? native.pickFolder(localizeDialog(opts)) : "downloads";
   },
 
   async writeToFolder(folder, files) {
@@ -131,6 +141,7 @@ export const platform = {
   forceClose: () => (native ? native.forceClose() : window.close()),
   newWindow: () => (native ? native.newWindow() : window.open(location.href, "_blank")),
   setTitleBarTheme: dark => native?.setTitleBarTheme(dark),
+  setLanguage: code => native?.setLanguage(code),
   appInfo: () => (native ? native.appInfo() : Promise.resolve({ version: "web preview" })),
   onOpenFile: cb => native?.onOpenFile(cb),
   onCommand: cb => native?.onCommand(cb),

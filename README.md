@@ -47,7 +47,10 @@ no account, and everything happens on your own computer — your documents are n
 3. **Follow the installer:** keep **Only for me** selected → **Next** → keep the suggested folder →
    **Install** → **Finish**. PDF Tool starts, and you'll find it in the Start menu and on your desktop.
 
-With *Only for me* no administrator rights are needed.
+With *Only for me* no administrator rights are needed. The installer appears in your Windows language.
+
+> **Polski interfejs:** click **EN** in the top-right corner of the app and choose **Polski**. The choice is
+> remembered.
 
 <details>
 <summary><b>Open every PDF with PDF Tool</b></summary>
@@ -83,6 +86,7 @@ Requires Windows 10 or 11, 64-bit.
 | **Annotate & sign** | Text boxes · freehand drawing · highlighter · images · signatures (draw, type, or upload a photo — the white background is removed automatically) · undo/redo · saved into the PDF, so other PDF readers show them too |
 | **Pages** | Drag-and-drop page organizer · rotate · delete · insert blank pages or another PDF · extract pages · split into several files · watermark (any language) · page numbers · edit title/author |
 | **Convert** | PDF → Word (3 layouts) · PDF → Excel · PDF → PNG/JPG · PDF → text · images → PDF · merge PDFs |
+| **Languages** | English (default) and Polish — switch with the **EN / PL** button in the title bar |
 
 ### PDF → Word that looks like the original
 
@@ -159,7 +163,6 @@ across pages.
 - **Excel** reads columns from how the text lines up, which works well for normal tables. Merged
   cells or text wrapped inside a cell can become extra rows.
 - **Password-protected PDFs** can be opened, read and annotated, but their pages can't be rearranged.
-- The app's interface is in English.
 
 ## Open source — improve it with us
 
@@ -195,6 +198,7 @@ npm run dev:web         # interface preview in a browser at http://localhost:519
 | `src/office.js` | Word (.docx) and Excel (.xlsx) writers |
 | `src/pdf-ops.js` | Page editing with pdf-lib — rotate, reorder, merge, split, watermark, numbers, images → PDF |
 | `src/convert.js` | Rendering, thumbnails, PDF → images / text |
+| `src/i18n.js`, `src/locales/`, `src/locale/` | Interface languages: English source texts, Polish dictionary, Polish labels for PDF.js |
 | `src/organizer.js`, `src/signature.js` | Page organizer and signature pad |
 | `src/styles.css` | Design (IBM Plex type, light and dark themes) |
 | `scripts/` | Build script, icon generator, sample/test PDF generators |

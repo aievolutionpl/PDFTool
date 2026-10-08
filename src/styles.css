@@ -207,6 +207,21 @@ kbd {
 
 .tb-sep { width: 1px; height: 16px; background: var(--border); margin: 0 6px; flex: none; }
 
+.lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  padding: 0 8px 0 7px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+}
+.lang-btn .icon { width: 15px; height: 15px; }
+.lang-btn .lang-code { font: 500 11.5px var(--mono); letter-spacing: .02em; }
+.lang-btn:hover { background: var(--hover); color: var(--text); }
+
 .doc-title {
   position: absolute;
   left: 50%;
@@ -741,6 +756,9 @@ body.dragover .drop-overlay { display: grid; }
 .modal-subtitle { margin: 3px 0 0; color: var(--text-2); font-size: 12.5px; }
 .modal-body { padding: 12px 20px 18px; overflow: auto; display: flex; flex-direction: column; gap: 14px; }
 .modal-text { margin: 0; color: var(--text-2); line-height: 1.6; }
+.modal-text a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--accent-line); }
+.modal-text a:hover { text-decoration-color: currentColor; }
+.about-credits { font-size: 12px; color: var(--text-3); }
 .modal-error { margin: -6px 20px 10px; color: var(--danger); font-size: 12.5px; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--border); background: var(--surface-2); border-radius: 0 0 var(--r-lg) var(--r-lg); }
 
@@ -883,11 +901,13 @@ body.dragover .drop-overlay { display: grid; }
 }
 
 /* ---------------------------------------------------------------- narrow windows */
-@media (max-width: 1180px) {
-  .toolbar .tool span { display: none; }
-  .toolbar .tool.primary span { display: inline; }
-  .tool-select > span, .group-label { display: none; }
-}
+/* The app sets .compact-1 / .compact-2 when the tools of the active tab don't fit
+   (small windows, longer translations): first secondary labels go, then all of them. */
+.toolbar.compact-1 .tool[data-low] span,
+.toolbar.compact-1 .tool-select > span,
+.toolbar.compact-1 .group-label { display: none; }
+.toolbar.compact-2 .tool:not(.primary) span { display: none; }
+.toolbar.compact-2 .seg { padding: 0 8px; }
 @media (max-width: 820px) {
   .welcome-grid { grid-template-columns: 1fr; gap: 28px; }
   .wordmark { display: none; }

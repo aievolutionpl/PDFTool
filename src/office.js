@@ -7,6 +7,7 @@
 //   "images" – one picture per page (pixel perfect, not editable).
 import { analyzePage, assignColumns, cleanText, inferColumns } from "./layout.js";
 import { pageToImage } from "./convert.js";
+import { t } from "./i18n.js";
 
 export class CancelledError extends Error {
   constructor() {
@@ -95,7 +96,7 @@ async function exactSections(docx, pdf, pages, opts) {
   } = docx;
   const sections = [];
   for (let i = 0; i < pages.length; i++) {
-    await step(opts, i, pages.length, `Page ${pages[i]}`);
+    await step(opts, i, pages.length, t("Page {n}", { n: pages[i] }));
     const page = await analyzePage(pdf, pages[i], { scale: 2, background: true, keepInvisible: false });
     const children = [];
 
@@ -361,7 +362,7 @@ async function flowSections(docx, pdf, pages, opts) {
   const { Paragraph } = docx;
   const analysed = [];
   for (let i = 0; i < pages.length; i++) {
-    await step(opts, i, pages.length, `Page ${pages[i]}`);
+    await step(opts, i, pages.length, t("Page {n}", { n: pages[i] }));
     analysed.push(await analyzePage(pdf, pages[i], { scale: 1.5, keepInvisible: true }));
   }
 
@@ -404,7 +405,7 @@ async function flowSections(docx, pdf, pages, opts) {
   });
 
   if (!children.length) {
-    children.push(new Paragraph({ children: [makeRun(docx, { text: "No selectable text was found. This PDF is probably a scan — try the Exact layout option." , size: 11 })] }));
+    children.push(new Paragraph({ children: [makeRun(docx, { text: t("No selectable text was found. This PDF is probably a scan — try the Exact layout option."), size: 11 })] }));
   }
 
   const first = analysed[0];
@@ -435,7 +436,7 @@ async function imageSections(docx, pdf, pages, opts) {
   const { Paragraph, ImageRun } = docx;
   const sections = [];
   for (let i = 0; i < pages.length; i++) {
-    await step(opts, i, pages.length, `Page ${pages[i]}`);
+    await step(opts, i, pages.length, t("Page {n}", { n: pages[i] }));
     const page = await pdf.getPage(pages[i]);
     const vp = page.getViewport({ scale: 1 });
     const data = await pageToImage(pdf, pages[i], { format: "jpg", dpi: 150, quality: 0.88 });
@@ -463,7 +464,7 @@ export async function pdfToDocx(pdf, pages, opts = {}) {
   const docx = await import("docx");
   const build = { exact: exactSections, flow: flowSections, images: imageSections }[opts.mode] || exactSections;
   const sections = await build(docx, pdf, pages, opts);
-  opts.onProgress?.(pages.length, pages.length, "Writing the Word file…");
+  opts.onProgress?.(pages.length, pages.length, t("Writing the Word file…"));
   await yieldToUi();
   const document = new docx.Document({
     title: opts.title || undefined,
@@ -663,9 +664,9 @@ async function writeXlsx(sheets, { numbers, title }) {
  */
 export async function pdfToXlsx(pdf, pages, opts = {}) {
   const sheets = [];
-  const combined = { name: "All pages", rows: [] };
+  const combined = { name: t("All pages"), rows: [] };
   for (let i = 0; i < pages.length; i++) {
-    await step(opts, i, pages.length, `Page ${pages[i]}`);
+    await step(opts, i, pages.length, t("Page {n}", { n: pages[i] }));
     const page = await analyzePage(pdf, pages[i], { render: false, splitGap: 0.75 });
     const columns = inferColumns(page.lines, page.width);
     const rows = [];
@@ -683,10 +684,10 @@ export async function pdfToXlsx(pdf, pages, opts = {}) {
       prev = line;
     }
     if (opts.oneSheet) combined.rows.push(...rows);
-    else sheets.push({ name: `Page ${pages[i]}`, rows });
+    else sheets.push({ name: t("Page {n}", { n: pages[i] }), rows });
   }
   if (opts.oneSheet) sheets.push(combined);
-  opts.onProgress?.(pages.length, pages.length, "Writing the Excel file…");
+  opts.onProgress?.(pages.length, pages.length, t("Writing the Excel file…"));
   await yieldToUi();
   return writeXlsx(sheets, opts);
 }
