@@ -1,7 +1,7 @@
 {
   "name": "pdf-tool",
   "productName": "PDF Tool",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Desktop PDF viewer with annotation, signing, page editing and conversion tools.",
   "main": "electron/main.js",
   "author": "AI Evolution Polska",
