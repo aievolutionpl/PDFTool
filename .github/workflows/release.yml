@@ -1,0 +1,75 @@
+name: Windows release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Check version and preview fix
+        shell: bash
+        run: |
+          node -e 'const assert=require("node:assert/strict"); const p=require("./package.json"); const l=require("./package-lock.json"); assert.equal(process.env.GITHUB_REF_NAME, `v${p.version}`); assert.equal(l.version,p.version); assert.equal(l.packages[""].version,p.version);'
+          git merge-base --is-ancestor 64cd0172b77cbb009a60b00eac5ad3047d2ff0b4 HEAD
+      - run: npm ci --include=dev --no-audit --no-fund
+      - run: npm run build:renderer
+      - name: Build installer and portable application
+        run: npx --no-install electron-builder --win nsis portable --x64 --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      - name: Verify packaged code and create checksums
+        run: node scripts/verify-release.mjs release/win-unpacked/resources/app.asar
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-release
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            release/PDF-Tool-Setup.exe
+            release/PDF-Tool-Portable.exe
+            release/build-info.json
+            release/SHA256SUMS.txt
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: windows-release
+          path: release
+      - name: Verify downloaded artifacts
+        working-directory: release
+        run: sha256sum --check SHA256SUMS.txt
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            release/PDF-Tool-Setup.exe release/PDF-Tool-Portable.exe \
+            release/build-info.json release/SHA256SUMS.txt \
+            --verify-tag --latest --title "PDF Tool ${RELEASE_TAG#v}" \
+            --generate-notes

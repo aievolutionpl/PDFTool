@@ -61,11 +61,17 @@ button in the title bar; the choice is saved.
 
 ### Releasing (maintainers)
 
-1. Update `version` in `package.json`.
-2. `npm run dist` and `npm run dist:portable` → `release/PDF-Tool-Setup.exe` and
-   `release/PDF-Tool-Portable.exe`.
-3. Commit, push, then
-   `gh release create vX.Y.Z release/PDF-Tool-Setup.exe release/PDF-Tool-Portable.exe --title "PDF Tool X.Y.Z" --generate-notes`.
+1. Run `npm version X.Y.Z --no-git-tag-version` to update `package.json` and the lockfile together.
+2. Commit and push the release changes, then tag that commit: `git tag vX.Y.Z` and
+   `git push origin vX.Y.Z`.
+3. The **Windows release** GitHub Actions workflow builds the installer and portable app on Windows,
+   checks that the tag and packaged version match, and verifies that the packaged preview styles and
+   runtime files match the release source. Only a successful build publishes the release and makes
+   it the latest download. Check the workflow result before announcing the release.
+
+The release includes `build-info.json` (source commit and packaged file hashes) and
+`SHA256SUMS.txt` (download checksums). For a local Windows build, run `npm run dist` and
+`npm run dist:portable`, then `node scripts/verify-release.mjs release/win-unpacked/resources/app.asar`.
 
 The file names stay the same in every release, so the download links in the README always point to
 the newest version.
