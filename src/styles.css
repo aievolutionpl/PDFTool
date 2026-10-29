@@ -480,9 +480,10 @@ input[type="range"] { accent-color: var(--ink); width: 92px; }
 .pdfViewer.removePageBorders .spread .page { margin: 0 10px 20px; }
 .pdfViewer.scrollHorizontal { padding: 24px; }
 
-.viewer-container.reading-night .page :is(canvas, .canvasWrapper) { filter: invert(.9) hue-rotate(180deg) contrast(.9); }
+/* Filter the composited page once, including any nested annotation canvases. */
+.viewer-container.reading-night .page .canvasWrapper { filter: invert(.9) hue-rotate(180deg) contrast(.9); }
 .viewer-container.reading-night .page { background: #1d1c1a; }
-.viewer-container.reading-sepia .page :is(canvas, .canvasWrapper) { filter: sepia(.5) saturate(1.05) brightness(.97); }
+.viewer-container.reading-sepia .page .canvasWrapper { filter: sepia(.5) saturate(1.05) brightness(.97); }
 
 /* ---------------------------------------------------------------- status bar */
 .statusbar {
